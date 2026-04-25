@@ -556,7 +556,6 @@ let matchSortBy = 'score'; // Criteriul de ordonare implicit
 function initMatchReport() {
   // Adăugă event listeners pentru butonul de raport AI
   const generateReportBtn = document.getElementById('generateReportBtn');
-  const closeReportBtn = document.getElementById('closeReportBtn');
   const matchSelect = document.getElementById('matchSelect');
   
   if(generateReportBtn) {
@@ -575,46 +574,161 @@ function initMatchReport() {
         return;
       }
       
-      // Arată containerul și indică încarcarea
-      const aiReportContainer = document.getElementById('aiReportContainer');
-      const aiReportContent = document.getElementById('aiReportContent');
+      // Arată modalul și indică încarcarea
+      const modal = document.getElementById('aiReportModal');
+      const modalBody = document.getElementById('aiReportModalBody');
       
-      if(aiReportContainer) {
-        aiReportContainer.style.display = 'block';
-        aiReportContent.innerHTML = '<p style="color:var(--muted); text-align:center;">⏳ Se genereaza raportul AI...</p>';
-      }
+      modalBody.innerHTML = '<p style="color:var(--gold); text-align:center; padding: 60px 0; font-size: 16px; letter-spacing: 1px;">⏳ SE GENEREAZĂ RAPORTUL AI...</p>';
+      modal.classList.add('open');
       
       // Generează raportul
       const report = await generateMatchReport(matchData, match);
       
-      if(report && aiReportContent) {
-        aiReportContent.innerHTML = report.split('\n').map(line => {
-          if(line.startsWith('##')) {
-            return `<h3 style="color:var(--gold); margin-top:16px; margin-bottom:8px; font-size:14px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px;">${line.replace('##', '').trim()}</h3>`;
-          } else if(line.startsWith('-')) {
-            return `<div style="margin-left:16px; margin-bottom:8px;">${line}</div>`;
-          } else if(line.startsWith('**') && line.endsWith('**')) {
-            return `<strong>${line.replace(/\*\*/g, '')}</strong>`;
-          } else if(line.trim()) {
-            return `<p style="margin-bottom:8px;">${line}</p>`;
-          }
-          return '';
-        }).join('');
-      }
-    });
-  }
-  
-  if(closeReportBtn) {
-    closeReportBtn.addEventListener('click', () => {
-      const aiReportContainer = document.getElementById('aiReportContainer');
-      if(aiReportContainer) {
-        aiReportContainer.style.display = 'none';
+      if(report && modalBody) {
+        // Separăm textul generat de AI în slide-uri pe baza delimitatorului "## "
+        const sections = report.split(/##\s+/).filter(p => p.trim() !== '');
+        
+        let slidesHtml = '';
+        sections.forEach((sec, index) => {
+            const lines = sec.split('\n');
+            const title = lines[0].trim();
+            const content = lines.slice(1).join('\n');
+            const parsedContent = marked.parse(content);
+            
+            slidesHtml += `
+              <div class="ai-slide ${index === 0 ? 'active' : 'next'}">
+                <h3 class="ai-slide-title">${title.replace(/^\d+\.\s*/, '')}</h3>
+                <div class="ai-slide-content">${parsedContent}</div>
+              </div>
+            `;
+        });
+
+        // Adăugăm slide-ul suplimentar cu greșelile jucătorilor
+        const activePlayers = matchData.filter(p => p.minutes > 0);
+        let totalMistakes = 0;
+        activePlayers.forEach(p => {
+           p.mistakes = (p.losses || 0) + (p.fouls || 0);
+           totalMistakes += p.mistakes;
+        });
+        
+        const avgMistakes = activePlayers.length > 0 ? (totalMistakes / activePlayers.length) : 0;
+
+        let mistakesHtml = `<div style="margin-bottom: 20px; color: var(--muted); font-size: 14px; background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+          Media de greșeli a echipei în acest meci (pierderi + faulturi): <strong style="color:var(--gold); font-size: 18px; margin: 0 4px;">${avgMistakes.toFixed(1)}</strong>
+          <br><span style="font-size: 12px; margin-top: 4px; display: inline-block;">Jucătorii care au depășit această medie sunt evidențiați cu <strong style="color:var(--red)">Roșu</strong>, indicând o rată crescută a erorilor individuale.</span>
+        </div>`;
+        
+        mistakesHtml += `<div class="squad-grid" style="grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px;">`;
+
+        const sortedPlayers = activePlayers.map(p => ({
+            ...p,
+            isAboveAvg: p.mistakes > avgMistakes
+        })).sort((a, b) => b.mistakes - a.mistakes);
+
+        sortedPlayers.forEach((p, i) => {
+            const ps = findPlayerStats(p.name) || {};
+            const photoEl = ps.url
+              ? `<img class="card-photo" src="${ps.url}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+              : '';
+            const placeholderEl = `<div class="card-photo-placeholder" style="${ps.url?'display:none':''}">${ps.Numar_Tricou || '?'}</div>`;
+            
+            const isBad = p.isAboveAvg;
+            const cardStyle = isBad 
+              ? 'border: 1px solid rgba(239, 68, 68, 0.6); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);' 
+              : 'opacity: 0.85; border: 1px solid rgba(255,255,255,0.05); box-shadow: none;';
+              
+            let errorsHtml = '';
+            if (isBad) {
+                errorsHtml = `
+                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(239, 68, 68, 0.3); font-size: 11px; color: #fca5a5; line-height: 1.5;">
+                    <strong style="color:#ef4444; font-size: 12px;">⚠️ ${p.mistakes} Greșeli:</strong><br>
+                    ${p.losses > 0 ? `• ${p.losses} pierderi de balon<br>` : ''}
+                    ${p.dangerousOwnHalfLosses > 0 ? `<span style="padding-left:8px; color:#f87171">- din care ${p.dangerousOwnHalfLosses} periculoase</span><br>` : ''}
+                    ${p.fouls > 0 ? `• ${p.fouls} faulturi comise<br>` : ''}
+                  </div>
+                `;
+            } else {
+                errorsHtml = `
+                  <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 11px; color: var(--muted);">
+                    ✅ ${p.mistakes} greșeli (Sub medie)
+                  </div>
+                `;
+            }
+
+            mistakesHtml += `
+              <div class="player-card" style="animation-delay: ${i*15}ms; cursor: default; ${cardStyle}">
+                 ${photoEl}${placeholderEl}
+                 <span class="card-jersey">#${ps.Numar_Tricou || '?'}</span>
+                 <div class="card-info" style="padding-bottom: 14px;">
+                   <div class="card-name" style="font-size:14px; white-space: normal;">${p.name}</div>
+                   <div class="card-pos">${(p.position || ps.Pozitie || '').toUpperCase()} · ${p.minutes}' jucate</div>
+                   ${errorsHtml}
+                 </div>
+              </div>
+            `;
+        });
+
+        mistakesHtml += `</div>`;
+
+        slidesHtml += `
+          <div class="ai-slide ${sections.length === 0 ? 'active' : 'next'}">
+            <h3 class="ai-slide-title">🔍 ANALIZĂ GREȘELI INDIVIDUALE</h3>
+            <div class="ai-slide-content">${mistakesHtml}</div>
+          </div>
+        `;
+
+        const totalSlides = sections.length + 1;
+        modalBody.innerHTML = `
+          <div class="ai-slideshow">
+            <div class="ai-slides-wrapper">
+              ${slidesHtml}
+            </div>
+            <div class="ai-slides-controls">
+              <button class="ai-slide-btn ai-slide-prev" disabled>❮ ÎNAPOI</button>
+              <div class="ai-slide-dots">
+                ${Array.from({length: totalSlides}).map((_, i) => `<span class="ai-dot ${i===0 ? 'active':''}"></span>`).join('')}
+              </div>
+              <button class="ai-slide-btn ai-slide-next">ÎNAINTE ❯</button>
+            </div>
+          </div>
+        `;
+
+        // Logica de navigare între slide-uri
+        let currentSlide = 0;
+        const slides = modalBody.querySelectorAll('.ai-slide');
+        const dots = modalBody.querySelectorAll('.ai-dot');
+        const prevBtn = modalBody.querySelector('.ai-slide-prev');
+        const nextBtn = modalBody.querySelector('.ai-slide-next');
+
+        const updateSlides = () => {
+            slides.forEach((s, i) => {
+                s.classList.remove('active', 'prev', 'next');
+                if (i === currentSlide) s.classList.add('active');
+                else if (i < currentSlide) s.classList.add('prev');
+                else s.classList.add('next');
+            });
+            dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+        };
+
+        prevBtn.addEventListener('click', () => { if(currentSlide > 0) { currentSlide--; updateSlides(); }});
+        nextBtn.addEventListener('click', () => { if(currentSlide < slides.length - 1) { currentSlide++; updateSlides(); }});
+        dots.forEach((d, i) => d.addEventListener('click', () => { currentSlide = i; updateSlides(); }));
       }
     });
   }
   
   renderMatchReport();
 }
+
+// Inchide modalul AI la click pe exterior
+document.addEventListener('click', e => {
+  const aiModal = document.getElementById('aiReportModal');
+  if (e.target === aiModal) {
+    aiModal.classList.remove('open');
+  }
+});
 
 function renderMatchReport() {
   const selectEl = document.getElementById('matchSelect');

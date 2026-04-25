@@ -39,77 +39,102 @@ function updateApiStatus(message, success) {
 
 // Format match data for prompt
 function formatMatchDataForPrompt(matchData, matchInfo, uClujStats, opponentStats) {
-  let physicalDataInfo = "";
-  
-  // Extragem datele fizice din preajma meciului pentru a le furniza AI-ului
+  // [A] MATCHES_DATA (Istoric meciuri)
+  const matchesDataStr = JSON.stringify(window.MATCHES || []);
+
+  // [B] PLAYERS_STATS (Atribute EA Sports)
+  const playersStatsStr = JSON.stringify((window.PLAYERS_STATS || []).map(p => ({
+    Nume: p.Nume,
+    Numar_Tricou: p.Numar_Tricou,
+    Pozitie: p.Pozitie,
+    Overall_Rating: p.Overall_Rating,
+    Statistici_Fizice_EA: p.Statistici_Fizice_EA,
+    Statistici_Tehnice_EA: p.Statistici_Tehnice_EA
+  })));
+
+  // [C] DATE_ANTRENAMENT (Sesiuni GPS din ultimele 7 zile + Meci)
+  let trainingDataStr = "[]";
   if (window.PHYSICAL_TRAINING && window.PHYSICAL_TRAINING.rows) {
     const matchDateObj = new Date(matchInfo.date);
-    const matchGps = window.PHYSICAL_TRAINING.rows.filter(row => {
-        if (!row.sessionDate) return false;
-        const diffDays = Math.abs(row.sessionDate - matchDateObj) / (1000 * 60 * 60 * 24);
-        return diffDays <= 1; // Sesiune exact în ziua meciului sau o zi diferență
-    });
+    const weekBeforeObj = new Date(matchDateObj.getTime() - 7 * 24 * 60 * 60 * 1000);
     
-    if (matchGps.length > 0) {
-        physicalDataInfo = "DATE FIZICE (Sesiune GPS meci/antrenament):\n";
-        matchGps.slice(0, 15).forEach(row => {
-            physicalDataInfo += `- ${row.playerName}: Distanța Totală=${row.distanceM}m, Speed Zone [25-50]=${row.speed25_50M}m, Accel Zone [4-10]=${row.accel4_10Count}, Power Metabolic AVG=${row.metabolicPowerAvg} W/kg\n`;
-        });
-    }
+    const recentTraining = window.PHYSICAL_TRAINING.rows.filter(row => {
+      if (!row.sessionDate) return false;
+      return row.sessionDate >= weekBeforeObj && row.sessionDate <= matchDateObj;
+    }).map(row => ({
+      Sessions: row.session,
+      Date: row.sessionDate ? row.sessionDate.toISOString().split('T')[0] : '',
+      Players: row.playerName,
+      "Distance (m)": row.distanceM,
+      "Distance/time (m/min)": row.durationMin > 0 ? Number((row.distanceM / row.durationMin).toFixed(1)) : 0,
+      "Duration (min)": row.durationMin,
+      "Acceleration Zones [4-10]": row.accel4_10Count,
+      "Speed Zones [25-50]": row.speed25_50M,
+      "Load - Power Metabolic AVG (W/kg)": row.metabolicPowerAvg,
+      "Sprints Abs (count/min)": row.sprintRatePerMin
+    }));
+    
+    trainingDataStr = JSON.stringify(recentTraining);
   }
 
-  // Formatăm datele jucătorilor din Wyscout + EA Sports
-  let playersDataText = "DATE JUCĂTORI (Wyscout + EA Sports):\n";
-  matchData.filter(p => p.minutes > 0).sort((a,b) => b.minutes - a.minutes).slice(0, 14).forEach(p => {
-      const ps = findPlayerStats(p.name);
-      const eaPace = ps && ps.Statistici_Fizice_EA ? ps.Statistici_Fizice_EA.Pace : 'N/A';
-      const eaStamina = ps && ps.Statistici_Fizice_EA ? ps.Statistici_Fizice_EA.Stamina : 'N/A';
-      
-      playersDataText += `- ${p.name} (${p.position}): ${p.minutes}' jucate, EA Pace: ${eaPace}, EA Stamina: ${eaStamina}, Pase Reușite: ${p.successfulPasses}/${p.passes}, Dueluri câștigate: ${p.duelsWon}/${p.duels}, Recuperări: ${p.recoveries}, Pierderi: ${p.losses}\n`;
-  });
+  // [D] CURRENT_MATCH_STATS (Statistici meci curent selectat)
+  const currentMatchStatsStr = JSON.stringify(matchData.filter(p => p.minutes > 0).map(p => ({
+    Nume: p.name,
+    Minute: p.minutes,
+    Pozitie: p.position,
+    Goluri: p.goals,
+    PaseGol: p.assists,
+    Recuperari: p.recoveries,
+    Pierderi: p.losses
+  })));
 
-  return `Rol: Acționează ca un Analist de Performanță Senior (Sport Scientist) și Consultant Tactic pentru clubul U Cluj.
+  return `Ești analistul de performanță al echipei de fotbal U Cluj. Rolul tău este să generezi rapoarte post-meci profesionale, clare și acționabile, destinate exclusiv staff-ului tehnic (antrenor principal, antrenori secundari, preparator fizic).
 
-Obiectiv: Generează un Raport de Analiză Post-Meci ultra-detaliat pentru partida JOC OFICIAL ${matchInfo.opponent} - U CLUJ din ${new Date(matchInfo.date).toLocaleDateString('ro-RO')}, utilizând datele furnizate din fișierele atașate (antrenament, players_stats.json, matches_data.json).
+REGULI ABSOLUTE:
+1. Folosești STRICT datele furnizate în contextul acestei conversații. Nu inventa statistici, scoruri, minute de joc sau orice altă informație care nu apare explicit în date.
+2. Dacă o informație lipsește din date, menționezi explicit "date indisponibile" — nu specula.
+3. Tonul este profesional, direct, tehnic. Fără clișee motivaționale.
+4. Structura raportului este FIXĂ — respectă ordinea secțiunilor de mai jos.
+5. Limba de output: română.
 
-DATE DISPONIBILE PENTRU ANALIZĂ:
-${physicalDataInfo ? physicalDataInfo : "Notă: Datele GPS exacte de la meci lipsesc, aproximează încărcătura fizică pe baza minutelor jucate și a atributelor EA."}
-${playersDataText}
+---
 
-Instrucțiuni de procesare a datelor:
-1. Identificarea Sursei: Corelează sesiunea GPS furnizată (dacă există) cu efortul din meci.
-2. Analiza Volumului și Intensității: Evaluează Distanța Totală și Distanța/minut (m/min). Analizează Speed Zones [25.0, 50.0] și Acceleration Zones [4.0, 10.0].
-3. Corelație cu Profilul Jucătorului (JSON): Compară performanța din teren cu atributele EA (Stamina, Pace).
-4. Analiza Metabolică: Interpretează "Power Metabolic AVG (W/kg)" sau volumul de minute pentru a evalua costul energetic.
+DATE DISPONIBILE ÎN CONTEXT:
 
-Structura Raportului (Vreau să respecți EXACT acest format):
+[A] MATCHES_DATA:
+${matchesDataStr}
 
-📊 Raport de Performanță: ${matchInfo.opponent} vs U CLUJ
-Context: Scorul final (${matchInfo.score}), data și faza competiției (${matchInfo.phase}).
+[B] PLAYERS_STATS:
+${playersStatsStr}
 
-Sinteză Echipă: O scurtă concluzie despre nivelul de intensitate al echipei (m/min mediu) și organizarea tactico-fizică.
+[C] DATE_ANTRENAMENT:
+${trainingDataStr}
 
-🏃‍♂️ Top 3 Performeri (Capacitate Fizică)
-Pentru fiecare din cei 3 jucători, include:
-- Nume și Poziție.
-- Cifre Cheie: Distanța totală, numărul de sprinturi/dueluri și accelerații.
-- Observație: Corelează efortul cu stat-ul de "Stamina" sau "Pace" din profilul lor EA Sports.
+[D] CURRENT_MATCH_STATS:
+${currentMatchStatsStr}
 
-⚡ Analiza Intensității (Viteză și Explozivitate)
-- Cel mai rapid jucător: (Cea mai mare distanță în Speed Zone [25.0, 50.0] sau Pace ridicat).
-- Cel mai exploziv jucător: (Cele mai multe acțiuni în Acceleration Zone [4.0, 10.0] sau eficiență mare în dueluri/recuperări scurte).
+---
 
-🔋 Managementul Efortului (Load Monitoring)
-- Identifică jucătorii cu cel mai mare Metabolic Load (W/kg) sau risc de uzură pe baza minutelor.
-- Recomandare: Specifică cine ar trebui să intre într-un program de recuperare intensă.
+STRUCTURA FIXĂ A RAPORTULUI POST-MECI:
 
-💡 Recomandări Tactice și Rotație (Meciul Următor)
-- Oferă 2-3 sugestii de specialitate pentru antrenor: jucători ce trebuie menajați, ajustări tactice pe baza pierderilor de minge din acest meci și cum se pot preveni accidentările la jucătorii epuizați.
+Nu genera alte texte introductive sau de încheiere. Generează EXACT următoarele secțiuni separate prin titluri cu "## ":
 
-Restricții de output:
-- Folosește tabele Markdown pentru datele comparative (ex: tabel cu Top 3 jucători sau Load Monitoring).
-- Nu inventa cifre; dacă un jucător nu are date GPS, bazează-te exclusiv pe minutele jucate, recuperări, dueluri și atributele EA furnizate.
-- Tonul trebuie să fie cel al unui expert tehnic și sport scientist.`;
+## 1. FORMA RECENTĂ
+Pe baza MATCHES_DATA, afișează ultimele 5 meciuri (cronologic descrescător până la data meciului curent):
+| Data | Adversar | Scor | Fază | Rezultat |
+Calculează: W/D/L în ultimele 5. Identifică tendința (serie pozitivă/negativă/neutră).
+
+## 2. OBSERVAȚII TEHNICE
+Dacă există DATE_ANTRENAMENT din săptămâna premergătoare meciului:
+- Identifică jucătorii cu sesiuni compensatorii sau de recuperare (cuvinte cheie: "COMPENSATOR", "REACTIVITATE")
+- Identifică sesiunile de intensitate înaltă (cuvinte cheie: "FORTA", "METABOLIC", "REZISTENTA", "INTENSE")
+- Menționează participarea la antrenamente (general)
+Dacă nu există date relevante: "Date antrenament pre-meci indisponibile."
+
+## 3. RECOMANDĂRI STAFF
+3-5 puncte concrete, bazate exclusiv pe datele analizate anterior. Format:
+- [Categorie: Fizic/Tactic/Recuperare] Recomandare specifică.
+`;
 }
 
 // Generate match report using Gemini API

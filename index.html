@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -43,13 +44,6 @@
       <div class="match-selector">
         <select id="matchSelect"></select>
         <button id="generateReportBtn" class="shadow-btn" style="margin-left:12px;">🤖 Genereaza Raport AI</button>
-      </div>
-      <div id="aiReportContainer" style="display:none; margin-bottom:20px; padding:16px; background:var(--card); border:1px solid var(--border); border-radius:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <h3 style="color:var(--gold); margin:0; font-size:16px;">📊 Raport AI al Meciului</h3>
-          <button id="closeReportBtn" style="background:none; border:none; color:var(--text); font-size:18px; cursor:pointer; padding:4px;">✕</button>
-        </div>
-        <div id="aiReportContent" style="color:var(--text); line-height:1.6; font-size:13px;"></div>
       </div>
       <div id="matchTeamStats" class="stats-row"></div>
       <div id="motmCard"></div>
@@ -142,6 +136,18 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<div class="modal-overlay" id="aiReportModal">
+  <div class="modal" style="max-width: 800px; border-color: rgba(200, 168, 75, 0.4); background: radial-gradient(circle at top right, rgba(0, 61, 165, 0.1), var(--navy));">
+    <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0; font-size:24px; color:var(--gold); display:flex; align-items:center; gap:10px;">
+        <span>📊</span> RAPORT AI POST-MECI
+      </h2>
+      <button class="modal-close" onclick="document.getElementById('aiReportModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="aiReportModalBody" style="padding-top: 10px;"></div>
   </div>
 </div>
 
