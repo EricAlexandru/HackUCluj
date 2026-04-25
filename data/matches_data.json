@@ -1,0 +1,121 @@
+[
+  {
+    "matchId": 5715690,
+    "opponent": "UTA Arad",
+    "score": "1-1",
+    "date": "2025-07-26",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715717,
+    "opponent": "Petrolul 52",
+    "score": "1-1",
+    "date": "2025-08-09",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715733,
+    "opponent": "Dinamo București",
+    "score": "0-1",
+    "date": "2025-08-23",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715749,
+    "opponent": "Rapid București",
+    "score": "0-0",
+    "date": "2025-09-12",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715765,
+    "opponent": "CFR Cluj",
+    "score": "2-2",
+    "date": "2025-09-29",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715781,
+    "opponent": "Botoșani",
+    "score": "0-2",
+    "date": "2025-10-18",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715796,
+    "opponent": "FCS București",
+    "score": "0-2",
+    "date": "2025-11-01",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715800,
+    "opponent": "Metaloglobus",
+    "score": "3-1",
+    "date": "2025-11-07",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715823,
+    "opponent": "Universitatea Craiova",
+    "score": "0-0",
+    "date": "2025-12-01",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715828,
+    "opponent": "Hermannstadt",
+    "score": "3-0",
+    "date": "2025-12-07",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715843,
+    "opponent": "Farul Constanța",
+    "score": "1-0",
+    "date": "2025-12-21",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715863,
+    "opponent": "Unirea Slobozia",
+    "score": "1-0",
+    "date": "2026-01-24",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715875,
+    "opponent": "Argeș",
+    "score": "3-1",
+    "date": "2026-02-03",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715889,
+    "opponent": "Csikszereda Miercurea Ciuc",
+    "score": "4-1",
+    "date": "2026-02-14",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5715911,
+    "opponent": "Oțelul",
+    "score": "4-0",
+    "date": "2026-02-27",
+    "phase": "Sezon Regulat"
+  },
+  {
+    "matchId": 5823152,
+    "opponent": "CFR Cluj",
+    "score": "2-1",
+    "date": "2026-03-16",
+    "phase": "Play-off"
+  },
+  {
+    "matchId": 5829259,
+    "opponent": "Universitatea Craiova",
+    "score": "4-0",
+    "date": "2026-04-13",
+    "phase": "Play-off"
+  }
+]

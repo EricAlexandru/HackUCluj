@@ -1,0 +1,572 @@
+[
+  {
+    "Nume": "Edvinas Gertmonas",
+    "Numar_Tricou": 1,
+    "Pozitie": "GK",
+    "Overall_Rating": 71,
+    "Statistici_Fizice_EA": {
+      "Pace": 45,
+      "Acceleration": 42,
+      "Sprint_Speed": 48,
+      "Stamina": 50,
+      "Strength": 70,
+      "Agility": 55
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 35,
+      "Ball_Control": 40
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6110/conversions/Gertmonas-crop_665_785.webp"
+  },
+  {
+    "Nume": "Ştefan Lefter",
+    "Numar_Tricou": 34,
+    "Pozitie": "GK",
+    "Overall_Rating": 62,
+    "Statistici_Fizice_EA": {
+      "Pace": 45,
+      "Acceleration": 43,
+      "Sprint_Speed": 47,
+      "Stamina": 48,
+      "Strength": 65,
+      "Agility": 58
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 30,
+      "Ball_Control": 35
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6111/conversions/Lefter-crop_665_785.webp"
+  },
+  {
+    "Nume": "Tudor Cosa",
+    "Numar_Tricou": 35,
+    "Pozitie": "GK",
+    "Overall_Rating": 58,
+    "Statistici_Fizice_EA": {
+      "Pace": 40,
+      "Acceleration": 38,
+      "Sprint_Speed": 42,
+      "Stamina": 45,
+      "Strength": 60,
+      "Agility": 50
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 25,
+      "Ball_Control": 30
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6113/conversions/Cosa-crop_665_785.webp"
+  },
+  {
+    "Nume": "Alin Chinteș",
+    "Numar_Tricou": 2,
+    "Pozitie": "RB",
+    "Overall_Rating": 58,
+    "Statistici_Fizice_EA": {
+      "Pace": 75,
+      "Acceleration": 76,
+      "Sprint_Speed": 74,
+      "Stamina": 70,
+      "Strength": 55,
+      "Agility": 72
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 60
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6131/conversions/Chintes-crop_665_785.webp"
+  },
+  {
+    "Nume": "Andrei Coubiș",
+    "Numar_Tricou": 3,
+    "Pozitie": "CB",
+    "Overall_Rating": 64,
+    "Statistici_Fizice_EA": {
+      "Pace": 68,
+      "Acceleration": 65,
+      "Sprint_Speed": 70,
+      "Stamina": 68,
+      "Strength": 78,
+      "Agility": 55
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 56,
+      "Ball_Control": 60
+    },
+    "url": "https://www.fcucluj.ro/storage/2026/1/6482/conversions/Coubis-site-nou-crop_665_785.webp"
+  },
+  {
+    "Nume": "Alin Toșca",
+    "Numar_Tricou": 4,
+    "Pozitie": "CB",
+    "Overall_Rating": 70,
+    "Statistici_Fizice_EA": {
+      "Pace": 54,
+      "Acceleration": 52,
+      "Sprint_Speed": 56,
+      "Stamina": 72,
+      "Strength": 74,
+      "Agility": 62
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 64
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6128/conversions/Alin_Tosca-crop_665_785.webp"
+  },
+  {
+    "Nume": "Elio Capradossi",
+    "Numar_Tricou": 5,
+    "Pozitie": "CB",
+    "Overall_Rating": 68,
+    "Statistici_Fizice_EA": {
+      "Pace": 50,
+      "Acceleration": 48,
+      "Sprint_Speed": 52,
+      "Stamina": 65,
+      "Strength": 78,
+      "Agility": 50
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 50,
+      "Ball_Control": 58
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6127/conversions/Capradossi-(1)-crop_665_785.webp"
+  },
+  {
+    "Nume": "Dino Mikanović",
+    "Numar_Tricou": 6,
+    "Pozitie": "RB",
+    "Overall_Rating": 67,
+    "Statistici_Fizice_EA": {
+      "Pace": 76,
+      "Acceleration": 78,
+      "Sprint_Speed": 74,
+      "Stamina": 82,
+      "Strength": 68,
+      "Agility": 70
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 62,
+      "Ball_Control": 65
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6130/conversions/Dino_Mikanovic-crop_665_785.webp"
+  },
+  {
+    "Nume": "Jonathan Cissé",
+    "Numar_Tricou": 7,
+    "Pozitie": "CB",
+    "Overall_Rating": 66,
+    "Statistici_Fizice_EA": {
+      "Pace": 60,
+      "Acceleration": 58,
+      "Sprint_Speed": 62,
+      "Stamina": 70,
+      "Strength": 82,
+      "Agility": 55
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 52,
+      "Ball_Control": 58
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6114/conversions/CISSE_Site-(1)-crop_665_785.webp"
+  },
+  {
+    "Nume": "Miguel Silva",
+    "Numar_Tricou": 8,
+    "Pozitie": "LB",
+    "Overall_Rating": 65,
+    "Statistici_Fizice_EA": {
+      "Pace": 72,
+      "Acceleration": 74,
+      "Sprint_Speed": 70,
+      "Stamina": 75,
+      "Strength": 65,
+      "Agility": 68
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 64,
+      "Ball_Control": 62
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6129/conversions/Silva-crop_665_785.webp"
+  },
+  {
+    "Nume": "Mouhamadou Drammeh",
+    "Numar_Tricou": 10,
+    "Pozitie": "CM",
+    "Overall_Rating": 64,
+    "Statistici_Fizice_EA": {
+      "Pace": 62,
+      "Acceleration": 60,
+      "Sprint_Speed": 64,
+      "Stamina": 75,
+      "Strength": 68,
+      "Agility": 65
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 64,
+      "Ball_Control": 65
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6133/conversions/Drammeh-crop_665_785.webp"
+  },
+  {
+    "Nume": "Dorin Codrea",
+    "Numar_Tricou": 11,
+    "Pozitie": "CDM",
+    "Overall_Rating": 62,
+    "Statistici_Fizice_EA": {
+      "Pace": 60,
+      "Acceleration": 58,
+      "Sprint_Speed": 62,
+      "Stamina": 82,
+      "Strength": 70,
+      "Agility": 62
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 60
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6123/conversions/Codrea-crop_665_785.webp"
+  },
+  {
+    "Nume": "Andrej Fabry",
+    "Numar_Tricou": 12,
+    "Pozitie": "CAM",
+    "Overall_Rating": 68,
+    "Statistici_Fizice_EA": {
+      "Pace": 68,
+      "Acceleration": 70,
+      "Sprint_Speed": 66,
+      "Stamina": 75,
+      "Strength": 58,
+      "Agility": 72
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 70,
+      "Ball_Control": 69
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6122/conversions/Fabry-crop_665_785.webp"
+  },
+  {
+    "Nume": "Andrei Artean",
+    "Numar_Tricou": 13,
+    "Pozitie": "CDM",
+    "Overall_Rating": 69,
+    "Statistici_Fizice_EA": {
+      "Pace": 44,
+      "Acceleration": 42,
+      "Sprint_Speed": 46,
+      "Stamina": 85,
+      "Strength": 78,
+      "Agility": 58
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 64,
+      "Ball_Control": 68
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6125/conversions/Artean-crop_665_785.webp"
+  },
+  {
+    "Nume": "Jug Stanojev",
+    "Numar_Tricou": 15,
+    "Pozitie": "RW",
+    "Overall_Rating": 66,
+    "Statistici_Fizice_EA": {
+      "Pace": 82,
+      "Acceleration": 84,
+      "Sprint_Speed": 80,
+      "Stamina": 70,
+      "Strength": 62,
+      "Agility": 78
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 67,
+      "Ball_Control": 64
+    },
+    "url": "https://www.fcucluj.ro/storage/2026/3/6604/conversions/Stanojev-crop_665_785.webp"
+  },
+  {
+    "Nume": "Omar El Sawy",
+    "Numar_Tricou": 16,
+    "Pozitie": "CAM",
+    "Overall_Rating": 61,
+    "Statistici_Fizice_EA": {
+      "Pace": 72,
+      "Acceleration": 74,
+      "Sprint_Speed": 70,
+      "Stamina": 68,
+      "Strength": 55,
+      "Agility": 75
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 63,
+      "Ball_Control": 64
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/9/6178/conversions/Omar_El_Sawy_Site-crop_665_785.webp"
+  },
+  {
+    "Nume": "Andrei Gheorghiță",
+    "Numar_Tricou": 17,
+    "Pozitie": "LW",
+    "Overall_Rating": 64,
+    "Statistici_Fizice_EA": {
+      "Pace": 78,
+      "Acceleration": 80,
+      "Sprint_Speed": 76,
+      "Stamina": 72,
+      "Strength": 60,
+      "Agility": 74
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 65,
+      "Ball_Control": 64
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6137/conversions/Gheorghita_Site-crop_665_785.webp"
+  },
+  {
+    "Nume": "Mihai Orban",
+    "Numar_Tricou": 18,
+    "Pozitie": "CM",
+    "Overall_Rating": 55,
+    "Statistici_Fizice_EA": {
+      "Pace": 65,
+      "Acceleration": 67,
+      "Sprint_Speed": 63,
+      "Stamina": 60,
+      "Strength": 58,
+      "Agility": 68
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 60
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/10/6253/conversions/Orban-Site-crop_665_785.webp"
+  },
+  {
+    "Nume": "Atanas Trică",
+    "Numar_Tricou": 19,
+    "Pozitie": "ST",
+    "Overall_Rating": 63,
+    "Statistici_Fizice_EA": {
+      "Pace": 66,
+      "Acceleration": 64,
+      "Sprint_Speed": 68,
+      "Stamina": 65,
+      "Strength": 80,
+      "Agility": 52
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 62
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6136/conversions/Trica-crop_665_785.webp"
+  },
+  {
+    "Nume": "Jovo Lukić",
+    "Numar_Tricou": 20,
+    "Pozitie": "ST",
+    "Overall_Rating": 65,
+    "Statistici_Fizice_EA": {
+      "Pace": 70,
+      "Acceleration": 68,
+      "Sprint_Speed": 72,
+      "Stamina": 72,
+      "Strength": 82,
+      "Agility": 55
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 60,
+      "Ball_Control": 64
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6135/conversions/Lukic-crop_665_785.webp"
+  },
+  {
+    "Nume": "Issouf Macalou",
+    "Numar_Tricou": 21,
+    "Pozitie": "ST",
+    "Overall_Rating": 65,
+    "Statistici_Fizice_EA": {
+      "Pace": 84,
+      "Acceleration": 86,
+      "Sprint_Speed": 82,
+      "Stamina": 70,
+      "Strength": 75,
+      "Agility": 72
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 66,
+      "Ball_Control": 65
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6126/conversions/Macalou-crop_665_785.webp"
+  },
+  {
+    "Nume": "Oucasse Mendy",
+    "Numar_Tricou": 22,
+    "Pozitie": "ST",
+    "Overall_Rating": 60,
+    "Statistici_Fizice_EA": {
+      "Pace": 78,
+      "Acceleration": 80,
+      "Sprint_Speed": 76,
+      "Stamina": 65,
+      "Strength": 68,
+      "Agility": 74
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 62,
+      "Ball_Control": 60
+    },
+    "url": "https://www.fcucluj.ro/storage/2026/1/6483/conversions/Mendy-crop_665_785-crop_665_785.webp"
+  },
+  {
+    "Nume": "Virgiliu Postolachi",
+    "Numar_Tricou": 23,
+    "Pozitie": "ST",
+    "Overall_Rating": 66,
+    "Statistici_Fizice_EA": {
+      "Pace": 74,
+      "Acceleration": 72,
+      "Sprint_Speed": 76,
+      "Stamina": 75,
+      "Strength": 78,
+      "Agility": 65
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 64,
+      "Ball_Control": 66
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/9/6177/conversions/Virgiliu_Postolachi_Site-crop_665_785.webp"
+  },
+  {
+    "Nume": "Alexandru Chipciu",
+    "Numar_Tricou": 27,
+    "Pozitie": "LB/LW",
+    "Overall_Rating": 69,
+    "Statistici_Fizice_EA": {
+      "Pace": 72,
+      "Acceleration": 70,
+      "Sprint_Speed": 74,
+      "Stamina": 75,
+      "Strength": 68,
+      "Agility": 70
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 68,
+      "Ball_Control": 70
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6117/conversions/Chipciu-(1)-crop_665_785.webp"
+  },
+  {
+    "Nume": "Dan Nistor",
+    "Numar_Tricou": 30,
+    "Pozitie": "CM",
+    "Overall_Rating": 72,
+    "Statistici_Fizice_EA": {
+      "Pace": 63,
+      "Acceleration": 65,
+      "Sprint_Speed": 61,
+      "Stamina": 74,
+      "Strength": 65,
+      "Agility": 75
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 72,
+      "Ball_Control": 75
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6121/conversions/Nistor-crop_665_785.webp"
+  },
+  {
+    "Nume": "Ovidiu Bic",
+    "Numar_Tricou": 31,
+    "Pozitie": "CM",
+    "Overall_Rating": 66,
+    "Statistici_Fizice_EA": {
+      "Pace": 64,
+      "Acceleration": 66,
+      "Sprint_Speed": 62,
+      "Stamina": 76,
+      "Strength": 62,
+      "Agility": 70
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 65,
+      "Ball_Control": 66
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6118/conversions/Bic-crop_665_785.webp"
+  },
+  {
+    "Nume": "Alessandro Murgia",
+    "Numar_Tricou": 32,
+    "Pozitie": "CM",
+    "Overall_Rating": 69,
+    "Statistici_Fizice_EA": {
+      "Pace": 55,
+      "Acceleration": 54,
+      "Sprint_Speed": 56,
+      "Stamina": 80,
+      "Strength": 72,
+      "Agility": 65
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 66,
+      "Ball_Control": 68
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6134/conversions/Murgia-crop_665_785.webp"
+  },
+  {
+    "Nume": "Jasper van der Werff",
+    "Numar_Tricou": 44,
+    "Pozitie": "CB",
+    "Overall_Rating": 67,
+    "Statistici_Fizice_EA": {
+      "Pace": 68,
+      "Acceleration": 65,
+      "Sprint_Speed": 70,
+      "Stamina": 72,
+      "Strength": 76,
+      "Agility": 60
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 64
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6115/conversions/Van_der_Werff-crop_665_785.webp"
+  },
+  {
+    "Nume": "Iulian Cristea",
+    "Numar_Tricou": 55,
+    "Pozitie": "CB",
+    "Overall_Rating": 68,
+    "Statistici_Fizice_EA": {
+      "Pace": 60,
+      "Acceleration": 58,
+      "Sprint_Speed": 62,
+      "Stamina": 70,
+      "Strength": 78,
+      "Agility": 55
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 58,
+      "Ball_Control": 62
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6116/conversions/Cristea-(1)-crop_665_785.webp"
+  },
+  {
+    "Nume": "Gabriel Simion",
+    "Numar_Tricou": 98,
+    "Pozitie": "CDM",
+    "Overall_Rating": 65,
+    "Statistici_Fizice_EA": {
+      "Pace": 60,
+      "Acceleration": 58,
+      "Sprint_Speed": 61,
+      "Stamina": 78,
+      "Strength": 72,
+      "Agility": 64
+    },
+    "Statistici_Tehnice_EA": {
+      "Dribbling": 60,
+      "Ball_Control": 63
+    },
+    "url": "https://www.fcucluj.ro/storage/2025/8/6119/conversions/Simion-crop_665_785.webp"
+  }
+]
