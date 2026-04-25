@@ -1,26 +1,503 @@
 // SQUAD TAB
+if (typeof window.squadViewMode === 'undefined') {
+    window.squadViewMode = 'pitch';
+}
+
 function initSquad() {
-  const grid = document.getElementById('squadGrid');
-  grid.innerHTML = '';
+  const tabPanel = document.getElementById('tab-squad');
   
-  const positionOrder = {
-    GK: 0,
-    CB: 1, LB: 1, RB: 1, LWB: 1, RWB: 1,
-    CDM: 2, CM: 2, CAM: 2,
-    LW: 3, RW: 3,
-    ST: 4
-  };
+  const allPlayers = [...(window.PLAYERS_STATS || [])].sort((a,b) => b.Overall_Rating - a.Overall_Rating);
   
-  const sorted = [...(window.PLAYERS_STATS || [])].sort((a,b) => {
-    const pa = positionOrder[a.Pozitie] ?? 99;
-    const pb = positionOrder[b.Pozitie] ?? 99;
-    if (pa !== pb) return pa - pb;
-    return b.Overall_Rating - a.Overall_Rating;
+  if (window.squadViewMode === 'list') {
+     tabPanel.innerHTML = `
+        <div class="prog-controls" style="display:flex; gap:10px; margin-bottom:16px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="squadListSearch" placeholder="Caută jucător sau poziție..." style="flex:1; min-width:180px; max-width:300px; background:#0f1628;color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:8px 12px;font-size:13px;font-family:'DM Sans';outline:none;">
+        </div>
+        <div class="squad-grid" id="squadGrid" style="display:flex; flex-wrap:wrap; gap:16px; margin-bottom:24px;"></div>
+        <div style="display:flex; justify-content:flex-start; margin-bottom:16px;">
+            <button id="toggleSquadViewBtn" class="shadow-btn" style="display:flex; align-items:center; gap:8px;">
+                ⚽ AFIȘEAZĂ AȘEZARE TACTICĂ
+            </button>
+        </div>
+     `;
+     
+     document.getElementById('toggleSquadViewBtn').addEventListener('click', () => {
+         window.squadViewMode = 'pitch';
+         initSquad();
+     });
+
+     const grid = document.getElementById('squadGrid');
+     const renderGrid = (query = '') => {
+         grid.innerHTML = '';
+         let filtered = allPlayers;
+         if (query) {
+             const q = query.toLowerCase();
+             filtered = allPlayers.filter(p => p.Nume.toLowerCase().includes(q) || p.Pozitie.toLowerCase().includes(q));
+         }
+         filtered.forEach((p, i) => {
+             const card = document.createElement('div');
+             card.className = 'player-card';
+             card.style.animationDelay = (i * 15) + 'ms';
+             const photoEl = p.url
+               ? `<img class="card-photo" src="${p.url}" alt="${p.Nume}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+               : '';
+             const placeholderEl = `<div class="card-photo-placeholder" style="${p.url?'display:none':''}">${p.Numar_Tricou}</div>`;
+             card.innerHTML = `
+               ${photoEl}${placeholderEl}
+               <span class="card-jersey">#${p.Numar_Tricou}</span>
+               <span class="card-rating">${p.Overall_Rating}</span>
+               <div class="card-info">
+                 <div class="card-name">${p.Nume}</div>
+                 <div class="card-pos">${p.Pozitie}</div>
+               </div>`;
+             card.addEventListener('click', () => openModal(p));
+             grid.appendChild(card);
+         });
+     };
+
+     renderGrid();
+     document.getElementById('squadListSearch').addEventListener('input', (e) => renderGrid(e.target.value));
+
+     return;
+  }
+
+  // Calculăm datele pentru panourile laterale
+  let countATT = 0, countMID = 0, countDEF = 0, countGK = 0;
+  let totalRating = 0;
+  
+  allPlayers.forEach(p => {
+      totalRating += p.Overall_Rating || 0;
+      const pos = p.Pozitie;
+      if (['ST','CF','RW','LW'].includes(pos)) countATT++;
+      else if (['CAM','CM','RM','LM','CDM'].includes(pos)) countMID++;
+      else if (['CB','LB','RB','LWB','RWB'].includes(pos)) countDEF++;
+      else if (pos === 'GK') countGK++;
   });
-  sorted.forEach((p,i)=>{
+  
+  const avgRating = allPlayers.length ? (totalRating / allPlayers.length).toFixed(1) : 0;
+  const top3 = allPlayers.slice(0, 3);
+  const injuryPlayers = allPlayers.map(p => ({
+      ...p, 
+      risk: typeof calcInjuryRisk === 'function' ? calcInjuryRisk(p.Nume) : 0
+  })).sort((a,b) => b.risk - a.risk).slice(0, 3);
+
+  tabPanel.innerHTML = `
+    <div class="squad-layout-wrapper">
+      
+      <!-- PANOU STÂNGA -->
+      <div class="squad-side-panel">
+          <div class="panel-header">📊 SQUAD INSIGHTS</div>
+          <div class="insight-box">
+              <div class="insight-val" style="color:var(--gold);">${avgRating}</div>
+              <div class="insight-lbl">Rating Mediu Lot</div>
+          </div>
+          <div class="insight-box">
+              <div class="insight-val">${allPlayers.length}</div>
+              <div class="insight-lbl">Jucători Valizi În Lot</div>
+          </div>
+          <div class="panel-subheader">ADÂNCIME LOT (DEPTH)</div>
+          <div class="depth-row"><span>Atacanți (ATT)</span><span class="depth-val">${countATT}</span></div>
+          <div class="depth-row"><span>Mijlocași (MID)</span><span class="depth-val">${countMID}</span></div>
+          <div class="depth-row"><span>Fundași (DEF)</span><span class="depth-val">${countDEF}</span></div>
+          <div class="depth-row"><span>Portari (GK)</span><span class="depth-val">${countGK}</span></div>
+          
+          <div style="margin-top:auto; padding-top:24px;">
+              <button id="toggleSquadViewBtn" class="shadow-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                  📋 AFIȘEAZĂ LISTĂ COMPLETĂ
+              </button>
+          </div>
+      </div>
+
+      <!-- PITCH CENTRAL -->
+      <div class="squad-center-pitch">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h3 style="color:var(--gold); font-family:'Bebas Neue'; font-size:24px; margin:0; text-align:center; width:100%;">PRIMUL 11 - SISTEM 4-3-1-2</h3>
+        </div>
+        <p style="color:var(--muted); font-size:14px; margin-bottom: 20px; text-align:center;">
+          Treceți cu mouse-ul peste jucătorii din teren pentru a vizualiza rezervele disponibile.
+        </p>
+        <div id="pitchContainer" class="formation-pitch"></div>
+      </div>
+
+      <!-- PANOU DREAPTA -->
+      <div class="squad-side-panel">
+          <div class="panel-header">⭐ TOP JUCĂTORI</div>
+          <div id="sideTopPlayers"></div>
+          
+          <div class="panel-header" style="margin-top:24px;">🏥 INJURY WATCH</div>
+          <div id="sideInjuryPlayers"></div>
+      </div>
+
+    </div>
+  `;
+  
+  document.getElementById('toggleSquadViewBtn').addEventListener('click', () => {
+      window.squadViewMode = 'list';
+      initSquad();
+  });
+  
+  if (!document.getElementById('pitch-styles')) {
+    const style = document.createElement('style');
+    style.id = 'pitch-styles';
+    style.innerHTML = `
+        .squad-layout-wrapper {
+            display: flex;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 150px);
+            align-items: stretch;
+            justify-content: center;
+        }
+        .squad-center-pitch {
+            flex: 1;
+            min-width: 500px;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+        .squad-side-panel {
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 22, 40, 0.6);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .squad-side-panel::-webkit-scrollbar { width: 4px; }
+        .squad-side-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .panel-header {
+            font-family: 'Bebas Neue';
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+        .panel-subheader {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            letter-spacing: 0.5px;
+        }
+        .insight-box {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .insight-val { font-family: 'Bebas Neue'; font-size: 28px; line-height: 1; color: #fff; }
+        .insight-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+        .depth-row {
+            display: flex; justify-content: space-between;
+            font-size: 13px; color: #c9d0de; padding: 8px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.05);
+        }
+        .depth-val { font-weight: bold; color: #fff; }
+        .side-player-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px; border-radius: 8px; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 4px;
+        }
+        .side-player-row:hover { background: rgba(255,255,255,0.05); }
+        .sp-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); display: flex;
+            align-items: center; justify-content: center;
+            font-family: 'Bebas Neue'; font-size: 16px; color: #fff; overflow: hidden;
+        }
+        .sp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .sp-info { flex: 1; min-width: 0; }
+        .sp-name {
+            font-size: 13px; font-weight: 500; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sp-pos { font-size: 11px; color: var(--muted); }
+        .sp-rating, .sp-risk { font-family: 'Bebas Neue'; font-size: 18px; }
+        .sp-rating { color: var(--gold); }
+        .risk-high { color: var(--red); }
+        .risk-med { color: var(--yellow); }
+        .risk-low { color: var(--green); }
+        
+        .formation-pitch {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            margin: 0 auto;
+            background: radial-gradient(circle at center, #1a243f 0%, #0f1628 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: inset 0 0 60px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .formation-pitch::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 1px;
+            background: rgba(255,255,255,0.05);
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+        .formation-pitch::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 150px; height: 150px;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+        .fifa-svg-lines {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .fifa-svg-lines line {
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 3;
+        }
+        .pitch-slot {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 140px;
+            z-index: 10;
+        }
+        .pitch-slot:hover {
+            z-index: 100;
+        }
+        .starter-card {
+            z-index: 10;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.2s;
+        }
+        .pitch-slot:hover .starter-card {
+            transform: scale(1.05);
+            z-index: 30;
+        }
+        .reserves-list {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 50;
+            background: rgba(15, 22, 40, 0.98);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+            pointer-events: none;
+            max-height: 420px;
+            overflow-y: auto;
+            gap: 10px;
+        }
+        .align-center .reserves-list { left: 50%; }
+        .align-left .reserves-list { left: 0; }
+        .align-right .reserves-list { right: 0; }
+        .reserves-list::-webkit-scrollbar { width: 4px; }
+        .reserves-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        .pitch-slot:hover .reserves-list {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        
+        /* Meniuri sub jucător */
+        .pitch-slot.dir-down .reserves-list { top: 60%; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .pitch-slot.dir-down:hover .reserves-list { top: 100%; }
+        .pitch-slot.dir-down.align-center .reserves-list { transform: translateX(-50%) translateY(-10px); }
+        .pitch-slot.dir-down.align-center:hover .reserves-list { transform: translateX(-50%) translateY(0); }
+        .pitch-slot.dir-down.align-left .reserves-list { transform: translateY(-10px); }
+        .pitch-slot.dir-down.align-left:hover .reserves-list { transform: translateY(0); }
+        .pitch-slot.dir-down.align-right .reserves-list { transform: translateY(-10px); }
+        .pitch-slot.dir-down.align-right:hover .reserves-list { transform: translateY(0); }
+
+        /* Meniuri deasupra jucătorului (pentru fundași) */
+        .pitch-slot.dir-up .reserves-list { bottom: 60%; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .pitch-slot.dir-up:hover .reserves-list { bottom: 100%; }
+        .pitch-slot.dir-up.align-center .reserves-list { transform: translateX(-50%) translateY(10px); }
+        .pitch-slot.dir-up.align-center:hover .reserves-list { transform: translateX(-50%) translateY(0); }
+        .pitch-slot.dir-up.align-left .reserves-list { transform: translateY(10px); }
+        .pitch-slot.dir-up.align-left:hover .reserves-list { transform: translateY(0); }
+        .pitch-slot.dir-up.align-right .reserves-list { transform: translateY(10px); }
+        .pitch-slot.dir-up.align-right:hover .reserves-list { transform: translateY(0); }
+        .reserves-list .player-card {
+            transform: scale(0.9);
+            transform-origin: center top;
+            margin: 0 0 -15px 0;
+            transition: transform 0.2s;
+        }
+        .reserves-list .player-card:last-child {
+            margin-bottom: 0;
+        }
+        .reserves-list .player-card:hover {
+            transform: scale(1);
+            z-index: 60;
+        }
+        .reserves-title {
+            font-family: 'Bebas Neue';
+            color: var(--gold);
+            font-size: 14px;
+            margin-bottom: 5px;
+            text-align: center;
+            white-space: nowrap;
+        }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const pitch = document.getElementById('pitchContainer');
+  pitch.innerHTML = `
+    <svg class="fifa-svg-lines">
+      <line x1="35%" y1="12%" x2="65%" y2="12%"/>
+      <line x1="35%" y1="12%" x2="50%" y2="30%"/>
+      <line x1="65%" y1="12%" x2="50%" y2="30%"/>
+      <line x1="50%" y1="30%" x2="20%" y2="50%"/>
+      <line x1="50%" y1="30%" x2="50%" y2="50%"/>
+      <line x1="50%" y1="30%" x2="80%" y2="50%"/>
+      <line x1="20%" y1="50%" x2="50%" y2="50%"/>
+      <line x1="50%" y1="50%" x2="80%" y2="50%"/>
+      <line x1="20%" y1="50%" x2="15%" y2="72%"/>
+      <line x1="50%" y1="50%" x2="38%" y2="72%"/>
+      <line x1="50%" y1="50%" x2="62%" y2="72%"/>
+      <line x1="80%" y1="50%" x2="85%" y2="72%"/>
+      <line x1="15%" y1="72%" x2="38%" y2="72%"/>
+      <line x1="38%" y1="72%" x2="62%" y2="72%"/>
+      <line x1="62%" y1="72%" x2="85%" y2="72%"/>
+      <line x1="38%" y1="72%" x2="50%" y2="88%"/>
+      <line x1="62%" y1="72%" x2="50%" y2="88%"/>
+    </svg>
+  `;
+
+  // Populăm listele din panoul lateral dreapta cu Event Listeners direcți
+  const topPlayersContainer = document.getElementById('sideTopPlayers');
+  top3.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'side-player-row';
+      row.innerHTML = `
+          <div class="sp-avatar">${p.url ? `<img src="${p.url}">` : p.Numar_Tricou}</div>
+          <div class="sp-info">
+              <div class="sp-name">${p.Nume}</div>
+              <div class="sp-pos">${p.Pozitie}</div>
+          </div>
+          <div class="sp-rating">${p.Overall_Rating}</div>
+      `;
+      row.addEventListener('click', () => openModal(p));
+      topPlayersContainer.appendChild(row);
+  });
+
+  const injuryPlayersContainer = document.getElementById('sideInjuryPlayers');
+  injuryPlayers.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'side-player-row';
+      let riskClass = 'risk-low';
+      if (p.risk > 70) riskClass = 'risk-high';
+      else if (p.risk > 40) riskClass = 'risk-med';
+      
+      row.innerHTML = `
+          <div class="sp-avatar">${p.url ? `<img src="${p.url}">` : p.Numar_Tricou}</div>
+          <div class="sp-info">
+              <div class="sp-name">${p.Nume}</div>
+              <div class="sp-pos">${p.Pozitie}</div>
+          </div>
+          <div class="sp-risk ${riskClass}">${p.risk}%</div>
+      `;
+      row.addEventListener('click', () => openModal(p));
+      injuryPlayersContainer.appendChild(row);
+  });
+
+  const pickedIds = new Set();
+
+  function pickBest(pool, positions, count) {
+      const picked = [];
+      for (let i = 0; i < pool.length && picked.length < count; i++) {
+          if (!pickedIds.has(pool[i].Nume) && positions.includes(pool[i].Pozitie)) {
+              picked.push(pool[i]);
+              pickedIds.add(pool[i].Nume);
+          }
+      }
+      for (let i = 0; i < pool.length && picked.length < count; i++) {
+          if (!pickedIds.has(pool[i].Nume)) {
+              picked.push(pool[i]);
+              pickedIds.add(pool[i].Nume);
+          }
+      }
+      return picked;
+  }
+
+  const fwd = pickBest(allPlayers, ['ST', 'CF', 'RW', 'LW'], 2);
+  const cam = pickBest(allPlayers, ['CAM', 'CM', 'RM', 'LM'], 1);
+  const mid = pickBest(allPlayers, ['CM', 'CDM', 'RM', 'LM'], 3);
+  const lb = pickBest(allPlayers, ['LB', 'LWB'], 1);
+  const cb = pickBest(allPlayers, ['CB'], 2);
+  const rb = pickBest(allPlayers, ['RB', 'RWB'], 1);
+  const def = [lb[0], cb[0], cb[1], rb[0]].filter(Boolean);
+  const gk = pickBest(allPlayers, ['GK'], 1);
+
+  // Grupăm restul jucătorilor în rezerve după poziție
+  const unpicked = allPlayers.filter(p => !pickedIds.has(p.Nume));
+  const buckets = { fwd: [], cam: [], cm: [], lb: [], cb: [], rb: [], gk: [] };
+  
+  unpicked.forEach(p => {
+      if (['GK'].includes(p.Pozitie)) buckets.gk.push(p);
+      else if (['CB'].includes(p.Pozitie)) buckets.cb.push(p);
+      else if (['LB', 'LWB'].includes(p.Pozitie)) buckets.lb.push(p);
+      else if (['RB', 'RWB'].includes(p.Pozitie)) buckets.rb.push(p);
+      else if (['CAM'].includes(p.Pozitie)) buckets.cam.push(p);
+      else if (['CM', 'CDM', 'RM', 'LM'].includes(p.Pozitie)) buckets.cm.push(p);
+      else if (['ST', 'CF', 'RW', 'LW'].includes(p.Pozitie)) buckets.fwd.push(p);
+      else buckets.cm.push(p); // Fallback pt cele neacoperite
+  });
+
+  // Funcție de distribuire uniformă a rezervelor pentru pozițiile cu mai mulți jucători (ex: atacanți)
+  function splitArray(array, parts) {
+      const result = Array.from({length: parts}, () => []);
+      array.forEach((item, i) => result[i % parts].push(item));
+      return result;
+  }
+
+  const fwdReserves = splitArray(buckets.fwd, 2);
+  const cbReserves = splitArray(buckets.cb, 2);
+  const cmReserves = splitArray(buckets.cm, 3);
+
+  // Configurația pozițiilor absolute (Titulari + Rezerve)
+  const playersConfig = [
+     { starter: fwd[0], reserves: fwdReserves[0], x: 35, y: 12, dir: 'down' },
+     { starter: fwd[1], reserves: fwdReserves[1], x: 65, y: 12, dir: 'down' },
+     { starter: cam[0], reserves: buckets.cam, x: 50, y: 30, dir: 'down' },
+     { starter: mid[0], reserves: cmReserves[0], x: 20, y: 50, dir: 'down' },
+     { starter: mid[1], reserves: cmReserves[1], x: 50, y: 50, dir: 'down' },
+     { starter: mid[2], reserves: cmReserves[2], x: 80, y: 50, dir: 'down' },
+     { starter: def[0], reserves: buckets.lb, x: 15, y: 72, dir: 'up' },
+     { starter: def[1], reserves: cbReserves[0], x: 38, y: 72, dir: 'up' },
+     { starter: def[2], reserves: cbReserves[1], x: 62, y: 72, dir: 'up' },
+     { starter: def[3], reserves: buckets.rb, x: 85, y: 72, dir: 'up' },
+     { starter: gk[0], reserves: buckets.gk, x: 50, y: 88, dir: 'up' }
+  ];
+
+  function createCardEl(p, delay) {
     const card = document.createElement('div');
     card.className = 'player-card';
-    card.style.animationDelay = (i*60)+'ms';
+    card.style.animationDelay = delay + 'ms';
+    if (!p) {
+        card.style.opacity = '0.3';
+        card.innerHTML = `<div class="card-info"><div class="card-pos">N/A</div></div>`;
+        return card;
+    }
     const photoEl = p.url
       ? `<img class="card-photo" src="${p.url}" alt="${p.Nume}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
@@ -34,8 +511,41 @@ function initSquad() {
         <div class="card-name">${p.Nume}</div>
         <div class="card-pos">${p.Pozitie}</div>
       </div>`;
-    card.addEventListener('click',()=>openModal(p));
-    grid.appendChild(card);
+    card.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevenim click accidental pe elementul parinte
+        openModal(p);
+    });
+    return card;
+  }
+
+  let delayAcc = 0;
+  playersConfig.forEach(slot => {
+      const slotEl = document.createElement('div');
+      
+      let alignClass = 'align-center';
+      if (slot.x <= 25) alignClass = 'align-left';
+      else if (slot.x >= 75) alignClass = 'align-right';
+      
+      slotEl.className = `pitch-slot dir-${slot.dir} ${alignClass}`;
+      slotEl.style.left = slot.x + '%';
+      slotEl.style.top = slot.y + '%';
+      
+      const starterWrap = document.createElement('div');
+      starterWrap.className = 'starter-card';
+      starterWrap.appendChild(createCardEl(slot.starter, delayAcc));
+      slotEl.appendChild(starterWrap);
+      delayAcc += 30;
+
+      if (slot.reserves && slot.reserves.length > 0) {
+          const reservesEl = document.createElement('div');
+          reservesEl.className = 'reserves-list';
+          reservesEl.innerHTML = `<div class="reserves-title">REZERVE</div>`;
+          slot.reserves.forEach(r => {
+              reservesEl.appendChild(createCardEl(r, 0));
+          });
+          slotEl.appendChild(reservesEl);
+      }
+      pitch.appendChild(slotEl);
   });
 }
 

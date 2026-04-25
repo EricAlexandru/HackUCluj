@@ -78,7 +78,10 @@ async function loadDataAndInit() {
 
   } catch (error) {
     console.error("Eroare gravă la încărcare. Asigură-te că folosești extensia Live Server!", error);
-    document.getElementById('squadGrid').innerHTML = "<p style='padding:20px;color:red'>Datele nu au putut fi încărcate. Verifică consola (F12).</p>";
+    const errorContainer = document.getElementById('squadGrid') || document.getElementById('tab-squad');
+    if (errorContainer) {
+      errorContainer.innerHTML = "<p style='padding:20px;color:red'>Datele nu au putut fi încărcate. Verifică consola (F12). Asigură-te că rulezi proiectul folosind extensia <b>Live Server</b>.</p>";
+    }
   }
 }
 
