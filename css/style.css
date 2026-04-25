@@ -167,6 +167,8 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 .cog-card-title {
   font-family: 'Bebas Neue', sans-serif;
@@ -181,13 +183,28 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   padding: 0;
   font-size: 13px;
   color: var(--text);
-  max-height: 460px;
+  flex: 1;
+  max-height: 480px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
   scroll-behavior: smooth;
   padding-right: 4px;
+}
+.cog-events-list::-webkit-scrollbar {
+  width: 6px;
+}
+.cog-events-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+.cog-events-list::-webkit-scrollbar-thumb {
+  background: rgba(200, 168, 75, 0.5); /* Culoarea auriu-transparentă pentru a se potrivi cu tema */
+  border-radius: 4px;
+}
+.cog-events-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 168, 75, 0.8);
 }
 .cog-events-list li {
   line-height: 1.4;
@@ -203,6 +220,7 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
     linear-gradient(135deg, rgba(13, 18, 36, 0.96), rgba(10, 14, 28, 0.92));
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(12px);
+  flex-shrink: 0; /* Previne turtirea cartonașelor când lista se umple */
 }
 .cog-event-card::before {
   content: '';
@@ -365,6 +383,7 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   font-size: 11px;
   line-height: 1.45;
   color: var(--text);
+  word-wrap: break-word; /* Asigură-te că textul lung nu depășește lățimea */
 }
 .cog-event-summary {
   margin-bottom: 8px;

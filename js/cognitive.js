@@ -189,6 +189,9 @@ const cognitiveState = {
   usedWindows: new Set(),
   windowsExhaustedLogged: false,
   subsExhaustedLogged: false,
+  uclujScore: 0,
+  oppScore: 0,
+  tactics: "Echilibrat / Standard",
   players: [],
   events: [],
   snapshots: {}
@@ -249,6 +252,9 @@ function resetCognitiveState() {
   cognitiveState.usedWindows = new Set();
   cognitiveState.windowsExhaustedLogged = false;
   cognitiveState.subsExhaustedLogged = false;
+  cognitiveState.uclujScore = 0;
+  cognitiveState.oppScore = 0;
+  cognitiveState.tactics = "Echilibrat / Standard";
   cognitiveState.players = initCognitivePlayers();
   cognitiveState.events = [];
   cognitiveState.snapshots = {};
@@ -305,13 +311,16 @@ function getCognitiveWindowLabel(windowId) {
 }
 
 function getTacticalSubstitutionCandidate(minute) {
-  if (minute < 55) return null;
-
   const fatiguedPlayer = getFieldPlayers()
     .filter((player) => player.position !== "GK")
     .sort((a, b) => a.energy - b.energy || b.errorRate - a.errorRate)[0];
 
   if (!fatiguedPlayer) return null;
+
+  // Permite schimbări timpurii dacă rata de eroare este CRITICĂ (ex: alertă medicală simulată)
+  if (minute < 45 && fatiguedPlayer.errorRate < 22) return null;
+  if (minute >= 45 && minute < 55 && fatiguedPlayer.errorRate < 16) return null;
+
   if (fatiguedPlayer.energy > 82 && fatiguedPlayer.errorRate < 14.5) return null;
 
   const benchCandidate = getBenchByPosition(fatiguedPlayer.position)[0];
@@ -371,11 +380,17 @@ function applySubstitution(minute, outPlayer, inPlayer, reason = "risc") {
 function runAISubstitutionEngine(minute) {
   // Motorul AI lucrează în ferestre realiste de schimbare, cu prioritate pe risc și apoi pe prospețime.
   const threshold = getCognitiveRiskThreshold(minute);
-  const windowId = getCognitiveSubstitutionWindow(minute);
+  let windowId = getCognitiveSubstitutionWindow(minute);
   const isHalftime = minute === 45;
 
+  // Detectează urgențele (erori masive) pentru a face schimbări în afara ferestrelor normale
+  const hasEmergency = getFieldPlayers().some((p) => p.errorRate > 22);
+  if (!isHalftime && !windowId && hasEmergency) {
+    windowId = 10 + cognitiveState.usedWindows.size; // Creează o fereastră de urgență artificială
+  }
+
   if (!isHalftime && !windowId) return;
-  if (!isHalftime && cognitiveState.usedWindows.has(windowId)) return;
+  if (!isHalftime && cognitiveState.usedWindows.has(windowId) && !hasEmergency) return;
 
   const riskyPlayers = getFieldPlayers()
     .filter((player) => player.errorRate > threshold)
@@ -448,7 +463,10 @@ function saveSnapshot(minute) {
     players: clonedPlayers,
     usedSubs: cognitiveState.usedSubs,
     usedWindows: cognitiveState.usedWindows.size,
-    avgEnergy: Number(avgEnergy.toFixed(2))
+    avgEnergy: Number(avgEnergy.toFixed(2)),
+    uclujScore: cognitiveState.uclujScore,
+    oppScore: cognitiveState.oppScore,
+    tactics: cognitiveState.tactics
   };
 }
 
@@ -465,6 +483,47 @@ function simulateMinute(minute) {
     player.energy = clampCog(player.energy - decay, 0, 100);
     player.errorRate = computeErrorFromEnergy(player.energy);
   });
+
+  // --- SIMULARE GOLURI, INCIDENTE ȘI DECIZII TACTICE ---
+  let goalChanceUCluj = 0.010;
+  let goalChanceOpp = 0.010;
+
+  const avgAttEnergy = getFieldPlayers().filter(p => p.roleGroup === "ATT" || p.roleGroup === "MID").reduce((s, p) => s + p.energy, 0) / 6;
+  const avgDefError = getFieldPlayers().filter(p => p.roleGroup === "DEF" || p.roleGroup === "GK").reduce((s, p) => s + p.errorRate, 0) / 5;
+
+  if (avgAttEnergy > 80) goalChanceUCluj += 0.005;
+  if (avgDefError > 15) goalChanceOpp += 0.008;
+
+  const rand = Math.random();
+  if (rand < goalChanceUCluj) {
+      cognitiveState.uclujScore++;
+      addCognitiveEvent(minute, "info", `⚽ GOOOL U Cluj! Scorul devine ${cognitiveState.uclujScore} - ${cognitiveState.oppScore}.`);
+      cognitiveState.tactics = Math.random() > 0.5 ? "Posesie & Control" : "Gegenpressing Atresiv";
+      addCognitiveEvent(minute, "info", `🧠 TACTIC: Am preluat conducerea/am marcat. Recomandare sistem AI: ${cognitiveState.tactics}.`);
+  } else if (rand < goalChanceUCluj + goalChanceOpp) {
+      cognitiveState.oppScore++;
+      addCognitiveEvent(minute, "warn", `🔴 GOL primit. Scorul devine ${cognitiveState.uclujScore} - ${cognitiveState.oppScore}.`);
+      cognitiveState.tactics = "Ofensiv / Linii Sus";
+      addCognitiveEvent(minute, "warn", `🧠 TACTIC: Am încasat gol. Linia de apărare e lentă (Eroare medie defensivă: ${avgDefError.toFixed(1)}%). Recomandare: ${cognitiveState.tactics}.`);
+  } else if (rand < goalChanceUCluj + goalChanceOpp + 0.015) {
+      const events = [
+          "Mijlocul terenului este aglomerat. Încercați schimbarea direcției de atac pe flancuri.",
+          "Adversarul lasă spații mari între linii. Cereți decarului (CAM) să atace acele zone libere.",
+          "Risc de contraatac! Fundașii laterali urcă prea mult. Cereți prudență defensivă temporară.",
+          "Echipa este prea statică la construcție. Intensificați mișcarea fără minge în zona neutră.",
+          "Pressingul advers este sufocant. Folosiți pase sigure și portarul pentru a atrage presiunea."
+      ];
+      addCognitiveEvent(minute, "info", `💡 OBSERVAȚIE: ${events[Math.floor(Math.random() * events.length)]}`);
+  }
+
+  // Incident medical/fizic aleatoriu (simularea nevoii de schimbare înainte de pauză)
+  if (minute > 10 && Math.random() < 0.004) {
+      const field = getFieldPlayers();
+      const unlucky = field[Math.floor(Math.random() * field.length)];
+      unlucky.errorRate = Math.min(40, unlucky.errorRate + 18);
+      unlucky.energy = Math.max(0, unlucky.energy - 30);
+      addCognitiveEvent(minute, "warn", `🚑 ALERTĂ MEDICALĂ / EPUIZARE: ${unlucky.name} acuză dureri sau epuizare subită. Eroare critică crescută la ${unlucky.errorRate.toFixed(1)}%!`);
+  }
 
   if (minute === 45) {
     applyHalftimeRecovery(minute);
@@ -498,24 +557,24 @@ function runFullSimulation() {
 function renderCognitiveKpis(snapshot) {
   const kpiItems = [
     {
-      label: "Minutul Curent",
-      value: `${snapshot.minute}'`,
-      sub: "cronometru simulare"
+      label: "Timp / Scor",
+      value: `${snapshot.minute}' | ${snapshot.uclujScore} - ${snapshot.oppScore}`,
+      sub: "Simulare Meci"
+    },
+    {
+      label: "Atitudine Tactică",
+      value: `${snapshot.tactics}`,
+      sub: "Sistem Recomandat Curent"
     },
     {
       label: "Schimbări Rămase",
       value: `${cognitiveState.maxSubs - snapshot.usedSubs}`,
-      sub: "maxim 5 pe meci"
+      sub: "din 5 permise"
     },
     {
-      label: "Ferestre Rămase",
-      value: `${cognitiveState.maxWindows - snapshot.usedWindows}`,
-      sub: "pauza nu consumă fereastră"
-    },
-    {
-      label: "Media Energie Echipă",
+      label: "Energie Medie Echipă",
       value: `${snapshot.avgEnergy.toFixed(1)}%`,
-      sub: "jucători activi"
+      sub: "media jucătorilor activi"
     }
   ];
 
@@ -561,12 +620,11 @@ function renderCognitiveEvents(currentMinute) {
 
   if (!visible.length) {
     cogDom.eventsList.innerHTML = "<li class='cog-event-card cog-event-empty'>Nu există recomandări până la acest minut.</li>";
-    cogDom.eventsList.scrollTop = cogDom.eventsList.scrollHeight;
+    cogDom.eventsList.scrollTop = 0;
     return;
   }
 
   cogDom.eventsList.innerHTML = visible
-    .slice(-14)
     .reverse()
     .map((event) => {
       if (event.type === "swap") {
@@ -589,7 +647,7 @@ function renderCognitiveEvents(currentMinute) {
     .join("");
 
   requestAnimationFrame(() => {
-    cogDom.eventsList.scrollTop = cogDom.eventsList.scrollHeight;
+    cogDom.eventsList.scrollTop = 0;
   });
 }
 
