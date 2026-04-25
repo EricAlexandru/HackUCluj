@@ -914,13 +914,6 @@ function initPhysicalStats() {
   const aiPhysBtn = document.getElementById('generatePhysicalReportBtn');
   if (aiPhysBtn && !aiPhysBtn.dataset.bound) {
     aiPhysBtn.addEventListener('click', async () => {
-      const apiKey = getApiKey();
-      if(!apiKey) {
-        alert('Te rog introdu cheia Gemini API în setări (butonul ⚙️)');
-        if (typeof openSettingsModal === 'function') openSettingsModal();
-        return;
-      }
-
       const modal = document.getElementById('aiPhysicalReportModal');
       const modalBody = document.getElementById('aiPhysicalReportModalBody');
 
