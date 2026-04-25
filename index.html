@@ -43,7 +43,7 @@
     <div class="tab-panel" id="tab-match">
       <div class="match-selector">
         <select id="matchSelect"></select>
-        <button id="generateReportBtn" class="shadow-btn" style="margin-left:12px;">🤖 Genereaza Raport AI</button>
+        <button id="generateReportBtn" class="ai-magic-btn" style="margin-left:12px;">✨ GENEREAZĂ RAPORT AI</button>
       </div>
       <div id="matchTeamStats" class="stats-row"></div>
       <div id="motmCard"></div>
@@ -78,6 +78,7 @@
         <div style="display:flex; gap:10px; align-items:center;">
           <label for="physicalSessionSelect" style="font-size:13px;color:var(--muted)">Sesiune:</label>
           <select id="physicalSessionSelect"></select>
+          <button id="generatePhysicalReportBtn" class="ai-magic-btn ai-magic-green" style="margin-bottom:0; display:none;">⚡ ANALIZĂ AI JUCĂTOR</button>
         </div>
       </div>
       <div id="physicalDataStatus" class="physical-status"></div>
@@ -148,6 +149,18 @@
       <button class="modal-close" onclick="document.getElementById('aiReportModal').classList.remove('open')">✕</button>
     </div>
     <div class="modal-body" id="aiReportModalBody" style="padding-top: 10px;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="aiPhysicalReportModal">
+  <div class="modal" style="max-width: 950px; border-color: rgba(34, 197, 94, 0.4); background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.1), var(--navy));">
+    <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 style="margin:0; font-size:24px; color:var(--green); display:flex; align-items:center; gap:10px;" id="aiPhysicalTitle">
+        <span>💪</span> ANALIZĂ AI - FIZIC & ANTRENAMENT
+      </h2>
+      <button class="modal-close" onclick="document.getElementById('aiPhysicalReportModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="aiPhysicalReportModalBody" style="padding-top: 10px;"></div>
   </div>
 </div>
 

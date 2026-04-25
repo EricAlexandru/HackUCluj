@@ -538,25 +538,44 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
 #matchSelect:focus {
   border-color: var(--blue);
 }
-#generateReportBtn {
-  background: var(--blue);
+
+/* BUTOANE AI MAGIC */
+.ai-magic-btn {
+  background: linear-gradient(135deg, #4f46e5, #3b82f6);
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 12px;
-  font-family: 'DM Sans';
+  padding: 10px 18px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  letter-spacing: 0.5px;
 }
-#generateReportBtn:hover {
-  background: #0050d8;
-  transform: translateY(-1px);
+.ai-magic-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6366f1, #60a5fa);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
 }
-#generateReportBtn:disabled {
+.ai-magic-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.ai-magic-green {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+.ai-magic-green:hover:not(:disabled) {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
 }
 
 /* Stilizare pentru output-ul Markdown al AI-ului in Modal (Tabele și Liste) */

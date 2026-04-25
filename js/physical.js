@@ -672,6 +672,18 @@ function renderPhysicalStats() {
     ? 'Toate sesiunile'
     : (sessionCatalog.find((s) => s.key === physicalSelectedSession)?.label || 'Sesiune');
 
+  // Afișează butonul AI doar când un jucător specific este selectat
+  const aiPhysBtn = document.getElementById('generatePhysicalReportBtn');
+  if (aiPhysBtn) {
+    if (physicalSelectedPlayer !== 'team') {
+      aiPhysBtn.style.display = 'flex';
+      const lastName = physicalSelectedPlayer.split(' ').pop().toUpperCase();
+      aiPhysBtn.innerHTML = `⚡ ANALIZĂ AI: ${lastName}`;
+    } else {
+      aiPhysBtn.style.display = 'none';
+    }
+  }
+
   const usedFiles = window.PHYSICAL_TRAINING.sourceFilesUsed.map((f) => f.replace('./data/', '')).join(', ');
   const missingFiles = window.PHYSICAL_TRAINING.missingFiles
     .filter((f) => f.includes('.xlsx'))
@@ -788,5 +800,59 @@ function initPhysicalStats() {
     sessionSelect.dataset.bound = '1';
   }
 
+  // AI Report Event Listener
+  const aiPhysBtn = document.getElementById('generatePhysicalReportBtn');
+  if (aiPhysBtn && !aiPhysBtn.dataset.bound) {
+    aiPhysBtn.addEventListener('click', async () => {
+      const apiKey = getApiKey();
+      if(!apiKey) {
+        alert('Te rog introdu cheia Gemini API în setări (butonul ⚙️)');
+        if (typeof openSettingsModal === 'function') openSettingsModal();
+        return;
+      }
+
+      const modal = document.getElementById('aiPhysicalReportModal');
+      const modalBody = document.getElementById('aiPhysicalReportModalBody');
+
+      modalBody.innerHTML = '<p style="color:var(--green); text-align:center; padding: 60px 0; font-size: 16px; letter-spacing: 1px;">⏳ SE ANALIZEAZĂ DATELE BIOMECANICE...</p>';
+      modal.classList.add('open');
+
+      const report = await generatePhysicalReport(window.PHYSICAL_TRAINING.rows, physicalSelectedPlayer, physicalSelectedSession);
+
+      if (report && modalBody) {
+        const sections = report.split(/##\s+/).filter(p => p.trim() !== '');
+        let cardsHtml = '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 10px; padding-bottom: 10px;">';
+        
+        sections.forEach((sec, index) => {
+            const lines = sec.split('\n');
+            const title = lines[0].trim();
+            const content = lines.slice(1).join('\n');
+            const parsedContent = marked.parse(content);
+
+            cardsHtml += `
+              <div style="background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.15), transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.03), rgba(0,0,0,0.2)); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
+                <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--green); margin-top: 0; margin-bottom: 12px; border-bottom: 2px solid rgba(34, 197, 94, 0.2); padding-bottom: 8px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                  ${title.replace(/^\d+\.\s*/, '')}
+                </h3>
+                <div style="color: #fff; font-size: 13px; line-height: 1.5;">${parsedContent}</div>
+              </div>
+            `;
+        });
+
+        cardsHtml += '</div>';
+        modalBody.innerHTML = cardsHtml;
+      }
+    });
+    aiPhysBtn.dataset.bound = '1';
+  }
+
   renderPhysicalStats();
 }
+
+// Închide modalul fizic la click in afara lui
+document.addEventListener('click', e => {
+  const modal = document.getElementById('aiPhysicalReportModal');
+  if (modal && e.target === modal) {
+    modal.classList.remove('open');
+  }
+});

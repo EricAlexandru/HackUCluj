@@ -193,6 +193,68 @@ async function generateMatchReport(matchData, matchInfo) {
   }
 }
 
+// Format physical data for prompt
+function formatPhysicalDataForPrompt(rows, playerFilter, sessionFilter) {
+  let relevantRows = rows;
+  if (sessionFilter !== 'all') {
+    relevantRows = relevantRows.filter(r => r.sessionKey === sessionFilter);
+  }
+  if (playerFilter !== 'team') {
+    relevantRows = relevantRows.filter(r => r.playerName === playerFilter);
+  }
+
+  // Sortam cronologic descrescator
+  relevantRows.sort((a,b) => b.sessionTimestamp - a.sessionTimestamp);
+
+  // Luăm un esantion relevant pentru a respecta limita de tokeni, dar păstrând cele mai importante date
+  const sampleRows = relevantRows.slice(0, 100).map(r => ({
+    Jucator: r.playerName,
+    Sesiune: r.session,
+    "m/min": r.durationMin > 0 ? (r.distanceM / r.durationMin).toFixed(1) : 0,
+    "Sprint>20kmh": Math.round(r.speed20_25M + r.speed25_50M),
+    "Accel_Intense": r.accel4_10Count,
+    "Load_Wkg": r.metabolicPowerAvg.toFixed(2)
+  }));
+
+  return `Ești Preparatorul Fizic (Sport Scientist) principal al echipei de fotbal U Cluj.
+Analizezi datele biometrice și GPS extrase din ultimele sesiuni:
+- Ținta analizei: ${playerFilter === 'team' ? 'Toată Echipa' : playerFilter}
+- Sesiunea/Perioada: ${sessionFilter === 'all' ? 'Istoric recent (Trend)' : sessionFilter}
+
+DATE GPS EXTRUDATE:
+${JSON.stringify(sampleRows)}
+
+Generează un raport SCURT, DIRECT și SIMPLU pe baza datelor. Fără explicații științifice lungi, fără termeni prea sofisticați, fără introduceri sau concluzii literare. Scrie strict la obiect, folosind bullet points. Folosește EXACT următoarele secțiuni (delimitate cu "## "):
+
+## 1. STARE CURENTĂ
+- Ritmul de joc (m/min) și efortul la intensitate mare (sprint/accelerări) - sunt slabe, medii sau foarte bune?
+
+## 2. RISCURI IDENTIFICATE
+- Care este nivelul de oboseală conform Load-ului Metabolic (W/kg)? Există vreun risc iminent de accidentare musculară? (răspunde în maxim 1-2 rânduri)
+
+## 3. RECOMANDARE CLARĂ
+- O acțiune simplă: ce trebuie făcut la antrenamentul de azi/mâine (ex: pauză, refacere, sau antrenament intens)?`;
+}
+
+// Generate physical report using Gemini API
+async function generatePhysicalReport(rows, playerFilter, sessionFilter) {
+  const apiKey = getApiKey();
+  if(!apiKey) return null;
+
+  const prompt = formatPhysicalDataForPrompt(rows, playerFilter, sessionFilter);
+  
+  try {
+    const response = await fetch(`${GEMINI_CONFIG.apiEndpoint}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    if(!response.ok) throw new Error(`API Error: ${response.status}`);
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  } catch(e) { console.error(e); return null; }
+}
+
 // Settings Modal Functions
 function openSettingsModal() {
   const modal = document.getElementById('settingsModal');
