@@ -8,31 +8,44 @@ const tabTitles = {
   cognitive: 'DEGRADARE COGNITIVĂ'
 };
 
+function activateTab(tab, element = null) {
+  // Eliminăm starea activă de pe toate
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  
+  // Setăm starea activă pe tab-ul apăsat, dacă există un element în meniu
+  if (element) {
+    element.classList.add('active');
+  }
+  
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('tabTitle').textContent = tabTitles[tab];
+  
+  // Inițializări specifice fiecărui tab
+  if(tab === 'squad' && typeof initSquad === 'function') initSquad();
+  if(tab === 'match') initMatchReport();
+  if(tab === 'progression') initProgression();
+  if(tab === 'physical' && typeof initPhysicalStats === 'function') initPhysicalStats();
+  if(tab === 'cognitive') {
+      if(typeof initCognitiveDashboard === 'function') {
+          initCognitiveDashboard();
+      }
+  }
+}
+
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
-    // Eliminăm starea activă de pe toate
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    
-    // Setăm starea activă pe tab-ul apăsat
-    item.classList.add('active');
-    
-    const tab = item.dataset.tab;
-    document.getElementById('tab-' + tab).classList.add('active');
-    document.getElementById('tabTitle').textContent = tabTitles[tab];
-    
-    // Inițializări specifice fiecărui tab
-    if(tab === 'match') initMatchReport();
-    if(tab === 'progression') initProgression();
-    if(tab === 'physical' && typeof initPhysicalStats === 'function') initPhysicalStats();
-    if(tab === 'cognitive') {
-        // Dacă funcția din cognitive.js există, o apelăm
-        if(typeof initCognitiveDashboard === 'function') {
-            initCognitiveDashboard();
-        }
-    }
+    activateTab(item.dataset.tab, item);
   });
 });
+
+// Event listener pentru logo - navigare către LOT JUCĂTORI
+const logoBtn = document.getElementById('logoBtn');
+if (logoBtn) {
+  logoBtn.addEventListener('click', () => {
+    activateTab('squad', null);
+  });
+}
 
 // PLAYER MODAL
 function openModal(ps) {
