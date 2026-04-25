@@ -82,7 +82,17 @@
         </div>
       </div>
       <div id="physicalDataStatus" class="physical-status"></div>
-      <div id="physicalPlayerGrid" class="physical-player-grid"></div>
+      <div id="physPlayerWrapper" class="prog-player-wrapper">
+        <div id="physOverlayLeft" class="prog-scroll-overlay left">
+          <button id="physScrollLeftMax" class="prog-ctrl-btn" title="La început">«</button>
+          <button id="physScrollLeft" class="prog-ctrl-btn" title="Înapoi">❮</button>
+        </div>
+        <div id="physicalPlayerGrid" class="prog-player-grid"></div>
+        <div id="physOverlayRight" class="prog-scroll-overlay right">
+          <button id="physScrollRight" class="prog-ctrl-btn" title="Înainte">❯</button>
+          <button id="physScrollRightMax" class="prog-ctrl-btn" title="La sfârșit">»</button>
+        </div>
+      </div>
       <div id="physicalKpis" class="stats-row"></div>
       <div id="physicalBreakdown" style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;"></div>
       <div class="chart-wrap">

@@ -912,13 +912,83 @@ let progChart = null;
 let progPlayerSelected = 'team'; // Stocăm starea selecției curente
 
 function initProgression() {
-  let container = document.getElementById('progPlayerGrid');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'progPlayerGrid';
-    container.style.cssText = 'display:flex; gap:16px; overflow-x:auto; padding:10px 5px 20px 5px; margin-bottom:20px; scroll-snap-type: x mandatory;';
+  let wrapper = document.getElementById('progPlayerWrapper');
+  if (!wrapper) {
+    wrapper = document.createElement('div');
+    wrapper.id = 'progPlayerWrapper';
+    wrapper.className = 'prog-player-wrapper';
+    
+    wrapper.innerHTML = `
+        <div id="progOverlayLeft" class="prog-scroll-overlay left">
+          <button id="progScrollLeftMax" class="prog-ctrl-btn" title="La început">«</button>
+          <button id="progScrollLeft" class="prog-ctrl-btn" title="Înapoi">❮</button>
+        </div>
+        <div id="progPlayerGrid" class="prog-player-grid"></div>
+        <div id="progOverlayRight" class="prog-scroll-overlay right">
+          <button id="progScrollRight" class="prog-ctrl-btn" title="Înainte">❯</button>
+          <button id="progScrollRightMax" class="prog-ctrl-btn" title="La sfârșit">»</button>
+        </div>
+    `;
+    
     const controls = document.getElementById('progControls');
-    if (controls) controls.parentNode.insertBefore(container, controls.nextSibling);
+    if (controls) controls.parentNode.insertBefore(wrapper, controls.nextSibling);
+
+    const grid = document.getElementById('progPlayerGrid');
+    const leftOverlay = document.getElementById('progOverlayLeft');
+    const rightOverlay = document.getElementById('progOverlayRight');
+    const leftBtn = document.getElementById('progScrollLeft');
+    const rightBtn = document.getElementById('progScrollRight');
+    const leftMaxBtn = document.getElementById('progScrollLeftMax');
+    const rightMaxBtn = document.getElementById('progScrollRightMax');
+
+    // Butoane Săgeată
+    leftBtn.addEventListener('click', () => { grid.scrollBy({ left: -300, behavior: 'smooth' }); });
+    rightBtn.addEventListener('click', () => { grid.scrollBy({ left: 300, behavior: 'smooth' }); });
+    leftMaxBtn.addEventListener('click', () => { grid.scrollTo({ left: 0, behavior: 'smooth' }); });
+    rightMaxBtn.addEventListener('click', () => { grid.scrollTo({ left: grid.scrollWidth, behavior: 'smooth' }); });
+
+    // Update vizibilitate săgeți și fade
+    const updateButtons = () => {
+        leftOverlay.style.opacity = grid.scrollLeft > 10 ? '1' : '0';
+        leftOverlay.style.pointerEvents = grid.scrollLeft > 10 ? 'auto' : 'none';
+        const maxScroll = grid.scrollWidth - grid.clientWidth;
+        rightOverlay.style.opacity = grid.scrollLeft < maxScroll - 10 ? '1' : '0';
+        rightOverlay.style.pointerEvents = grid.scrollLeft < maxScroll - 10 ? 'auto' : 'none';
+    };
+    grid.addEventListener('scroll', updateButtons);
+    window.addEventListener('resize', updateButtons);
+
+    // Drag to scroll
+    let isDown = false;
+    let startX, scrollLeft;
+
+    grid.addEventListener('mousedown', (e) => {
+        isDown = true;
+        grid.classList.add('dragging');
+        startX = e.pageX - grid.offsetLeft;
+        scrollLeft = grid.scrollLeft;
+    });
+    grid.addEventListener('mouseleave', () => { isDown = false; grid.classList.remove('dragging'); });
+    grid.addEventListener('mouseup', () => { 
+        isDown = false; grid.classList.remove('dragging'); 
+        setTimeout(() => { grid.dataset.isDragging = 'false'; }, 50); // reset drag lock
+    });
+    grid.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - grid.offsetLeft;
+        const walk = (x - startX) * 2; // multiplicator viteză
+        if (Math.abs(walk) > 5) grid.dataset.isDragging = 'true';
+        grid.scrollLeft = scrollLeft - walk;
+    });
+    
+    // Mouse Wheel orizontal adaptat
+    grid.addEventListener('wheel', (e) => {
+        const isAtStart = grid.scrollLeft === 0;
+        const isAtEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
+        if (e.deltaY > 0 && !isAtEnd) { e.preventDefault(); grid.scrollBy({ left: 300, behavior: 'smooth' }); } 
+        else if (e.deltaY < 0 && !isAtStart) { e.preventDefault(); grid.scrollBy({ left: -300, behavior: 'smooth' }); }
+    });
   }
 
   const searchInput = document.getElementById('progSearch');
@@ -936,6 +1006,30 @@ function initProgression() {
   renderProgression();
 }
 
+function updateProgPlayerHighlight() {
+  const container = document.getElementById('progPlayerGrid');
+  if (!container) return;
+  const cards = container.querySelectorAll('.player-card');
+  cards.forEach(card => {
+    const key = card.dataset.playerKey;
+    if (key === progPlayerSelected) {
+      if (key === 'team') {
+        card.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.6)';
+        card.style.border = '2px solid #3b82f6';
+        card.style.transform = 'translateY(-5px)';
+      } else {
+        card.style.boxShadow = '0 0 15px rgba(251, 191, 36, 0.6)';
+        card.style.border = '2px solid #fbbf24';
+        card.style.transform = 'translateY(-5px)';
+      }
+    } else {
+      card.style.boxShadow = '';
+      card.style.border = '';
+      card.style.transform = '';
+    }
+  });
+}
+
 function renderProgressionCards() {
   const container = document.getElementById('progPlayerGrid');
   if (!container) return;
@@ -950,6 +1044,7 @@ function renderProgressionCards() {
   if ("medie echipă".includes(query) || "echipa".includes(query) || query === "") {
     const teamCard = document.createElement('div');
     teamCard.className = 'player-card';
+    teamCard.dataset.playerKey = 'team';
     teamCard.style.cssText = 'width:160px; flex-shrink:0; cursor:pointer; transition:all 0.3s; scroll-snap-align: start;';
     if (progPlayerSelected === 'team') {
       teamCard.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.6)';
@@ -963,7 +1058,10 @@ function renderProgressionCards() {
         <div class="card-name">Medie Echipă</div>
         <div class="card-pos">Toți Jucătorii</div>
       </div>`;
-    teamCard.onclick = () => { progPlayerSelected = 'team'; renderProgressionCards(); renderProgression(); };
+    teamCard.onclick = (e) => { 
+      if (container.dataset.isDragging === 'true') { e.preventDefault(); return; }
+      progPlayerSelected = 'team'; updateProgPlayerHighlight(); renderProgression(); 
+    };
     container.appendChild(teamCard);
   }
 
@@ -993,13 +1091,36 @@ function renderProgressionCards() {
 
   players.forEach((item, i) => {
     const p = item.ps;
+
+    // Calculăm indicatorul de TREND (Forma recentă: ultimul meci vs meciul anterior)
+    let trendHtml = '';
+    const validMatchesForTrend = window.MATCHES.filter(m => window.ALL_MATCH_STATS[m.matchId] && window.ALL_MATCH_STATS[m.matchId].length > 0);
+    let playerScores = validMatchesForTrend.map(m => {
+      const ms = window.ALL_MATCH_STATS[m.matchId] || [];
+      const pData = ms.find(s => s.name === item.wName);
+      return pData ? calcMatchScore(pData) : null;
+    }).filter(s => s !== null);
+
+    if (playerScores.length >= 2) {
+      const lastScore = playerScores[playerScores.length - 1];
+      const prevScore = playerScores[playerScores.length - 2];
+      if (lastScore > prevScore + 0.1) {
+        trendHtml = `<span style="color:#22c55e; font-size:12px; margin-left:4px; vertical-align:middle;" title="Formă în creștere">▲</span>`;
+      } else if (lastScore < prevScore - 0.1) {
+        trendHtml = `<span style="color:#ef4444; font-size:12px; margin-left:4px; vertical-align:middle;" title="Formă în scădere">▼</span>`;
+      } else {
+        trendHtml = `<span style="color:#8892a4; font-size:12px; margin-left:4px; vertical-align:middle;" title="Formă constantă">▬</span>`;
+      }
+    }
+
     const card = document.createElement('div');
     card.className = 'player-card';
+    card.dataset.playerKey = item.wName;
     card.style.cssText = `width:160px; flex-shrink:0; cursor:pointer; transition:all 0.3s; animation-delay:${i * 30}ms; scroll-snap-align: start;`;
     
     if (progPlayerSelected === item.wName) {
-      card.style.boxShadow = '0 0 15px rgba(200, 168, 75, 0.6)';
-      card.style.border = '2px solid #C8A84B';
+      card.style.boxShadow = '0 0 15px rgba(251, 191, 36, 0.6)';
+      card.style.border = '2px solid #fbbf24';
       card.style.transform = 'translateY(-5px)';
     }
 
@@ -1011,13 +1132,21 @@ function renderProgressionCards() {
     card.innerHTML = `
       ${photoEl}${placeholderEl}
       <span class="card-jersey">#${p.Numar_Tricou}</span>
-      <span class="card-rating">${p.Overall_Rating}</span>
+      <span class="card-rating" style="width: auto; padding: 0 8px;">${p.Overall_Rating} ${trendHtml}</span>
       <div class="card-info">
         <div class="card-name">${p.Nume}</div>
         <div class="card-pos">${p.Pozitie}</div>
       </div>`;
-    card.onclick = () => { progPlayerSelected = item.wName; renderProgressionCards(); renderProgression(); };
+    card.onclick = (e) => { 
+      if (container.dataset.isDragging === 'true') { e.preventDefault(); return; }
+      progPlayerSelected = item.wName; updateProgPlayerHighlight(); renderProgression(); 
+    };
     container.appendChild(card);
+  });
+  
+  // Verifică vizibilitatea overlay-ului după generarea conținutului
+  setTimeout(() => {
+    if (container) container.dispatchEvent(new Event('scroll'));
   });
 }
 
@@ -1038,20 +1167,26 @@ function renderProgression() {
     return scored.length ? parseFloat((scored.reduce((a,b)=>a+b,0)/scored.length).toFixed(2)) : null;
   });
 
-  // Acum culorile arată clar RATINGUL (rezultatul performanței) în loc de rezultatul meciului
-  const ptColorsTeam = teamScores.map(s => s !== null ? scoreColor(s) : '#8892a4');
+  const ctx = document.getElementById('progressionChart').getContext('2d');
+  
+  // Creăm un gradient atractiv pentru elementul selectat (echipă sau jucător)
+  const activeGradient = ctx.createLinearGradient(0, 0, 0, 300);
+  activeGradient.addColorStop(0, selected === 'team' ? 'rgba(59, 130, 246, 0.4)' : 'rgba(251, 191, 36, 0.4)');
+  activeGradient.addColorStop(1, 'transparent');
 
   const datasets = [{
     label:'Medie Echipă',
     data:teamScores,
-    borderColor: selected === 'team' ? '#3b82f6' : 'rgba(59,130,246,0.3)',
-    backgroundColor: selected === 'team' ? 'rgba(59,130,246,0.1)' : 'transparent',
-    fill:true,
-    tension:0.1, // Linie mai dreaptă pentru a accentua vizual schimbările abrupte
-    pointBackgroundColor:ptColorsTeam,
+    borderColor: selected === 'team' ? '#3b82f6' : 'rgba(136, 146, 164, 0.4)',
+    backgroundColor: selected === 'team' ? activeGradient : 'transparent',
+    fill: selected === 'team',
+    borderDash: selected === 'team' ? [] : [5, 5],
+    borderWidth: selected === 'team' ? 3 : 2,
+    tension: 0.3,
+    pointBackgroundColor: selected === 'team' ? teamScores.map(s => s !== null ? scoreColor(s) : '#8892a4') : 'rgba(136, 146, 164, 0.4)',
     pointBorderColor:'#fff',
     pointBorderWidth:2,
-    pointRadius: selected === 'team' ? 6 : 4,
+    pointRadius: selected === 'team' ? 6 : 0, // Ascundem punctele mediei când analizăm un jucător
     pointHoverRadius:8,
   }];
 
@@ -1070,10 +1205,11 @@ function renderProgression() {
     datasets.push({
       label: selected,
       data: playerScores,
-      borderColor: '#C8A84B',
-      backgroundColor: 'rgba(200,168,75,0.05)',
-      fill:false,
-      tension:0.1,
+      borderColor: '#fbbf24',
+      backgroundColor: activeGradient,
+      fill:true,
+      borderWidth: 3,
+      tension:0.3,
       pointBackgroundColor:ptColorsPlayer,
       pointBorderColor:'#fff',
       pointBorderWidth:2,
@@ -1092,12 +1228,40 @@ function renderProgression() {
   maxScore = Math.min(10, Math.ceil(maxScore) + 1);
 
   if(progChart) progChart.destroy();
-  const ctx = document.getElementById('progressionChart').getContext('2d');
+  
+  // Plugin pentru indicatorul vertical (Crosshair)
+  const crosshairPlugin = {
+    id: 'crosshair',
+    afterDraw: chart => {
+      if (chart.tooltip?._active && chart.tooltip._active.length) {
+        const activePoint = chart.tooltip._active[0];
+        const ctx = chart.ctx;
+        const x = activePoint.element.x;
+        const topY = chart.scales.y.top;
+        const bottomY = chart.scales.y.bottom;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, topY);
+        ctx.lineTo(x, bottomY);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  };
+
   progChart = new Chart(ctx, {
     type:'line',
     data:{labels, datasets},
+    plugins: [crosshairPlugin],
     options:{
       responsive:true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
       plugins:{
         legend:{labels:{color:'#8892a4',font:{family:'DM Sans'}}},
         tooltip:{
@@ -1122,12 +1286,40 @@ function renderProgression() {
     }
   });
 
+  const totalMatches = window.MATCHES.length;
   const wins = window.MATCHES.filter(m=>{const[g1,g2]=m.score.split('-').map(Number);return g1>g2;}).length;
   const draws = window.MATCHES.filter(m=>{const[g1,g2]=m.score.split('-').map(Number);return g1===g2;}).length;
-  const losses = window.MATCHES.length - wins - draws;
+  const losses = totalMatches - wins - draws;
+  const playoffs = window.MATCHES.filter(m=>m.phase==='Play-off').length;
+
+  const winPct = totalMatches ? Math.round((wins / totalMatches) * 100) : 0;
+  const drawPct = totalMatches ? Math.round((draws / totalMatches) * 100) : 0;
+  const lossPct = totalMatches ? Math.round((losses / totalMatches) * 100) : 0;
+  const playPct = totalMatches ? Math.round((playoffs / totalMatches) * 100) : 0;
+
   document.getElementById('progStats').innerHTML = `
-    <div class="stat-box"><div class="stat-label">Victorii</div><div class="stat-num" style="color:var(--green)">${wins}</div></div>
-    <div class="stat-box"><div class="stat-label">Egaluri</div><div class="stat-num" style="color:var(--yellow)">${draws}</div></div>
-    <div class="stat-box"><div class="stat-label">Înfrângeri</div><div class="stat-num" style="color:var(--red)">${losses}</div></div>
-    <div class="stat-box"><div class="stat-label">Meciuri Play-off</div><div class="stat-num" style="color:var(--gold)">${window.MATCHES.filter(m=>m.phase==='Play-off').length}</div></div>`;
+    <div class="prog-widget prog-widget-green">
+      <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></div>
+      <div class="prog-widget-title">Victorii</div>
+      <div class="prog-widget-value">${wins}</div>
+      <div class="prog-widget-context">${winPct}% din totalul meciurilor</div>
+    </div>
+    <div class="prog-widget prog-widget-yellow">
+      <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <div class="prog-widget-title">Egaluri</div>
+      <div class="prog-widget-value">${draws}</div>
+      <div class="prog-widget-context">${drawPct}% din totalul meciurilor</div>
+    </div>
+    <div class="prog-widget prog-widget-red">
+      <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="prog-widget-title">Înfrângeri</div>
+      <div class="prog-widget-value">${losses}</div>
+      <div class="prog-widget-context">${lossPct}% din totalul meciurilor</div>
+    </div>
+    <div class="prog-widget prog-widget-gold">
+      <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M19 3l3 3"/><path d="M12 1v2"/></svg></div>
+      <div class="prog-widget-title">Meciuri Play-off</div>
+      <div class="prog-widget-value">${playoffs}</div>
+      <div class="prog-widget-context">${playPct}% din totalul meciurilor</div>
+    </div>`;
 }

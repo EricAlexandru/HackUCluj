@@ -485,27 +485,27 @@ function simulateMinute(minute) {
   });
 
   // --- SIMULARE GOLURI, INCIDENTE ȘI DECIZII TACTICE ---
-  let goalChanceUCluj = 0.010;
-  let goalChanceOpp = 0.010;
+  let goalChanceUCluj = 0.018; // Șanse mai mari de gol pentru spectacol
+  let goalChanceOpp = 0.012;
 
   const avgAttEnergy = getFieldPlayers().filter(p => p.roleGroup === "ATT" || p.roleGroup === "MID").reduce((s, p) => s + p.energy, 0) / 6;
   const avgDefError = getFieldPlayers().filter(p => p.roleGroup === "DEF" || p.roleGroup === "GK").reduce((s, p) => s + p.errorRate, 0) / 5;
 
-  if (avgAttEnergy > 80) goalChanceUCluj += 0.005;
-  if (avgDefError > 15) goalChanceOpp += 0.008;
+  if (avgAttEnergy > 80) goalChanceUCluj += 0.008;
+  if (avgDefError > 15) goalChanceOpp += 0.010;
 
   const rand = Math.random();
   if (rand < goalChanceUCluj) {
       cognitiveState.uclujScore++;
       addCognitiveEvent(minute, "info", `⚽ GOOOL U Cluj! Scorul devine ${cognitiveState.uclujScore} - ${cognitiveState.oppScore}.`);
-      cognitiveState.tactics = Math.random() > 0.5 ? "Posesie & Control" : "Gegenpressing Atresiv";
+      cognitiveState.tactics = Math.random() > 0.5 ? "Posesie & Control" : "Gegenpressing Agresiv";
       addCognitiveEvent(minute, "info", `🧠 TACTIC: Am preluat conducerea/am marcat. Recomandare sistem AI: ${cognitiveState.tactics}.`);
   } else if (rand < goalChanceUCluj + goalChanceOpp) {
       cognitiveState.oppScore++;
       addCognitiveEvent(minute, "warn", `🔴 GOL primit. Scorul devine ${cognitiveState.uclujScore} - ${cognitiveState.oppScore}.`);
       cognitiveState.tactics = "Ofensiv / Linii Sus";
       addCognitiveEvent(minute, "warn", `🧠 TACTIC: Am încasat gol. Linia de apărare e lentă (Eroare medie defensivă: ${avgDefError.toFixed(1)}%). Recomandare: ${cognitiveState.tactics}.`);
-  } else if (rand < goalChanceUCluj + goalChanceOpp + 0.015) {
+  } else if (rand < goalChanceUCluj + goalChanceOpp + 0.035) { // Evenimente tactice mult mai dese
       const events = [
           "Mijlocul terenului este aglomerat. Încercați schimbarea direcției de atac pe flancuri.",
           "Adversarul lasă spații mari între linii. Cereți decarului (CAM) să atace acele zone libere.",
@@ -517,12 +517,20 @@ function simulateMinute(minute) {
   }
 
   // Incident medical/fizic aleatoriu (simularea nevoii de schimbare înainte de pauză)
-  if (minute > 10 && Math.random() < 0.004) {
+  if (minute > 10 && Math.random() < 0.008) { // Șanse duble de "drame" medicale
       const field = getFieldPlayers();
       const unlucky = field[Math.floor(Math.random() * field.length)];
       unlucky.errorRate = Math.min(40, unlucky.errorRate + 18);
       unlucky.energy = Math.max(0, unlucky.energy - 30);
       addCognitiveEvent(minute, "warn", `🚑 ALERTĂ MEDICALĂ / EPUIZARE: ${unlucky.name} acuză dureri sau epuizare subită. Eroare critică crescută la ${unlucky.errorRate.toFixed(1)}%!`);
+  }
+
+  // REGULA DE AUR: U CLUJ CÂȘTIGĂ ÎNTOTDEAUNA! 
+  if (minute === 90 && cognitiveState.uclujScore <= cognitiveState.oppScore) {
+      const neededGoals = cognitiveState.oppScore - cognitiveState.uclujScore + 1;
+      cognitiveState.uclujScore += neededGoals;
+      addCognitiveEvent(minute, "info", `⚽ GOOOL U Cluj! Final de infarct! Echipa a forțat în prelungiri și a marcat. Scorul final: ${cognitiveState.uclujScore} - ${cognitiveState.oppScore}! HAIDE 'U'! 🏁`);
+      cognitiveState.tactics = "Sărbătoare pe teren / Victorie";
   }
 
   if (minute === 45) {

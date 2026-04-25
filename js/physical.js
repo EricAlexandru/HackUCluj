@@ -260,6 +260,30 @@ function buildPlayerCardsData(summary) {
   return rosterMapped.concat(fallback);
 }
 
+function updatePhysicalPlayerHighlight() {
+  const container = document.getElementById('physicalPlayerGrid');
+  if (!container) return;
+  const cards = container.querySelectorAll('.player-card');
+  cards.forEach(card => {
+    const key = card.dataset.playerKey;
+    if (key === physicalSelectedPlayer) {
+      if (key === 'team') {
+        card.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.6)';
+        card.style.border = '2px solid #3b82f6';
+        card.style.transform = 'translateY(-5px)';
+      } else {
+        card.style.boxShadow = '0 0 15px rgba(200, 168, 75, 0.6)';
+        card.style.border = '2px solid #C8A84B';
+        card.style.transform = 'translateY(-5px)';
+      }
+    } else {
+      card.style.boxShadow = '';
+      card.style.border = '';
+      card.style.transform = '';
+    }
+  });
+}
+
 function renderPhysicalPlayerCards(summary) {
   const grid = document.getElementById('physicalPlayerGrid');
   if (!grid) return;
@@ -291,24 +315,38 @@ function renderPhysicalPlayerCards(summary) {
 
   if ("medie echipă".includes(query) || "echipa".includes(query) || query === "") {
     const teamCard = document.createElement('div');
-    teamCard.className = `player-card ${physicalSelectedPlayer === 'team' ? 'is-active-team' : ''}`;
+    teamCard.className = 'player-card';
+    teamCard.dataset.playerKey = 'team';
+    teamCard.style.cssText = 'width:160px; flex-shrink:0; cursor:pointer; transition:all 0.3s; scroll-snap-align: start;';
+    if (physicalSelectedPlayer === 'team') {
+      teamCard.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.6)';
+      teamCard.style.border = '2px solid #3b82f6';
+      teamCard.style.transform = 'translateY(-5px)';
+    }
     teamCard.innerHTML = `
       <div class="card-photo-placeholder" style="background:rgba(0,61,165,0.8); color:#fff; font-size:32px;">🛡️</div>
       <div class="card-info">
         <div class="card-name">Medie Echipă</div>
         <div class="card-pos">Toți jucătorii</div>
       </div>`;
-    teamCard.addEventListener('click', () => {
+    teamCard.addEventListener('click', (e) => {
+      if (grid.dataset.isDragging === 'true') { e.preventDefault(); return; }
       physicalSelectedPlayer = 'team';
-      renderPhysicalStats();
+      renderPhysicalStats(true);
     });
     grid.appendChild(teamCard);
   }
 
   cards.forEach((item, idx) => {
     const card = document.createElement('div');
-    card.className = `player-card ${physicalSelectedPlayer === item.key ? 'is-active-player' : ''}`;
-    card.style.animationDelay = `${idx * 40}ms`;
+    card.className = 'player-card';
+    card.dataset.playerKey = item.key;
+    card.style.cssText = `width:160px; flex-shrink:0; cursor:pointer; transition:all 0.3s; animation-delay:${idx * 40}ms; scroll-snap-align: start;`;
+    if (physicalSelectedPlayer === item.key) {
+      card.style.boxShadow = '0 0 15px rgba(200, 168, 75, 0.6)';
+      card.style.border = '2px solid #C8A84B';
+      card.style.transform = 'translateY(-5px)';
+    }
     const photoEl = item.url
       ? `<img class="card-photo" src="${item.url}" alt="${item.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       : '';
@@ -321,11 +359,16 @@ function renderPhysicalPlayerCards(summary) {
         <div class="card-name">${item.name}</div>
         <div class="card-pos">${item.position}</div>
       </div>`;
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (grid.dataset.isDragging === 'true') { e.preventDefault(); return; }
       physicalSelectedPlayer = item.key;
-      renderPhysicalStats();
+      renderPhysicalStats(true);
     });
     grid.appendChild(card);
+  });
+  
+  setTimeout(() => {
+    if (grid) grid.dispatchEvent(new Event('scroll'));
   });
 }
 
@@ -643,7 +686,8 @@ function rebuildSessionSelect(options) {
   select.value = physicalSelectedSession;
 }
 
-function renderPhysicalStats() {
+function renderPhysicalStats(skipCardsRender) {
+  const skip = skipCardsRender === true;
   const sourceRows = window.PHYSICAL_TRAINING.rows || [];
   const statusEl = document.getElementById('physicalDataStatus');
   const kpisEl = document.getElementById('physicalKpis');
@@ -659,7 +703,10 @@ function renderPhysicalStats() {
     physicalSelectedPlayer = 'team';
   }
 
-  renderPhysicalPlayerCards(summary);
+  if (!skip) {
+    renderPhysicalPlayerCards(summary);
+  }
+  updatePhysicalPlayerHighlight();
 
   const selectedSummary = physicalSelectedPlayer === 'team'
     ? buildTeamSummary(summary)
@@ -744,17 +791,23 @@ function renderPhysicalStats() {
      });
      
      bdEl.innerHTML = `
-       <div style="flex:1; min-width: 200px; background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.2); border-radius:8px; padding:12px; text-align:center;">
-          <div style="font-family:'Bebas Neue'; font-size:24px; color:var(--green)">${light}</div>
-          <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Antrenamente Ușoare / Refacere</div>
+       <div class="prog-widget prog-widget-green" style="flex:1; min-width: 250px;">
+         <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+         <div class="prog-widget-title">Ușoare / Refacere</div>
+         <div class="prog-widget-value">${light}</div>
+         <div class="prog-widget-context">${light > 0 ? 'Sesiuni cu < 70 m/min' : 'Fără sesiuni ușoare'}</div>
        </div>
-       <div style="flex:1; min-width: 200px; background:rgba(234,179,8,0.05); border:1px solid rgba(234,179,8,0.2); border-radius:8px; padding:12px; text-align:center;">
-          <div style="font-family:'Bebas Neue'; font-size:24px; color:var(--yellow)">${med}</div>
-          <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Antrenamente Tactice / Normale</div>
+       <div class="prog-widget prog-widget-yellow" style="flex:1; min-width: 250px;">
+         <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+         <div class="prog-widget-title">Tactice / Normale</div>
+         <div class="prog-widget-value">${med}</div>
+         <div class="prog-widget-context">${med > 0 ? 'Sesiuni cu 70-95 m/min' : 'Fără sesiuni tactice'}</div>
        </div>
-       <div style="flex:1; min-width: 200px; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:12px; text-align:center;">
-          <div style="font-family:'Bebas Neue'; font-size:24px; color:var(--red)">${intense}</div>
-          <div style="font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Antrenamente Intense / Fizice</div>
+       <div class="prog-widget prog-widget-red" style="flex:1; min-width: 250px;">
+         <div class="prog-widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+         <div class="prog-widget-title">Intense / Fizice</div>
+         <div class="prog-widget-value">${intense}</div>
+         <div class="prog-widget-context">${intense > 0 ? 'Sesiuni cu > 95 m/min' : 'Fără sesiuni intense'}</div>
        </div>
      `;
   }
@@ -783,6 +836,63 @@ function initPhysicalStats() {
   if (sortSelect && !sortSelect.dataset.bound) {
     sortSelect.addEventListener('change', renderPhysicalStats);
     sortSelect.dataset.bound = '1';
+  }
+
+  const grid = document.getElementById('physicalPlayerGrid');
+  const leftOverlay = document.getElementById('physOverlayLeft');
+  const rightOverlay = document.getElementById('physOverlayRight');
+  const leftBtn = document.getElementById('physScrollLeft');
+  const rightBtn = document.getElementById('physScrollRight');
+  const leftMaxBtn = document.getElementById('physScrollLeftMax');
+  const rightMaxBtn = document.getElementById('physScrollRightMax');
+
+  if (grid && leftBtn && !grid.dataset.scrollBound) {
+    leftBtn.addEventListener('click', () => { grid.scrollBy({ left: -300, behavior: 'smooth' }); });
+    rightBtn.addEventListener('click', () => { grid.scrollBy({ left: 300, behavior: 'smooth' }); });
+    leftMaxBtn.addEventListener('click', () => { grid.scrollTo({ left: 0, behavior: 'smooth' }); });
+    rightMaxBtn.addEventListener('click', () => { grid.scrollTo({ left: grid.scrollWidth, behavior: 'smooth' }); });
+
+    const updateButtons = () => {
+        leftOverlay.style.opacity = grid.scrollLeft > 10 ? '1' : '0';
+        leftOverlay.style.pointerEvents = grid.scrollLeft > 10 ? 'auto' : 'none';
+        const maxScroll = grid.scrollWidth - grid.clientWidth;
+        rightOverlay.style.opacity = grid.scrollLeft < maxScroll - 10 ? '1' : '0';
+        rightOverlay.style.pointerEvents = grid.scrollLeft < maxScroll - 10 ? 'auto' : 'none';
+    };
+    grid.addEventListener('scroll', updateButtons);
+    window.addEventListener('resize', updateButtons);
+
+    let isDown = false;
+    let startX, scrollLeft;
+
+    grid.addEventListener('mousedown', (e) => {
+        isDown = true;
+        grid.classList.add('dragging');
+        startX = e.pageX - grid.offsetLeft;
+        scrollLeft = grid.scrollLeft;
+    });
+    grid.addEventListener('mouseleave', () => { isDown = false; grid.classList.remove('dragging'); });
+    grid.addEventListener('mouseup', () => { 
+        isDown = false; grid.classList.remove('dragging'); 
+        setTimeout(() => { grid.dataset.isDragging = 'false'; }, 50); 
+    });
+    grid.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - grid.offsetLeft;
+        const walk = (x - startX) * 2; 
+        if (Math.abs(walk) > 5) grid.dataset.isDragging = 'true';
+        grid.scrollLeft = scrollLeft - walk;
+    });
+    
+    grid.addEventListener('wheel', (e) => {
+        const isAtStart = grid.scrollLeft === 0;
+        const isAtEnd = grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 1;
+        if (e.deltaY > 0 && !isAtEnd) { e.preventDefault(); grid.scrollBy({ left: 300, behavior: 'smooth' }); } 
+        else if (e.deltaY < 0 && !isAtStart) { e.preventDefault(); grid.scrollBy({ left: -300, behavior: 'smooth' }); }
+    });
+    
+    grid.dataset.scrollBound = '1';
   }
 
   if (!sessionSelect || !statusEl) return;
