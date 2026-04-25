@@ -197,7 +197,7 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 18px;
-  padding: 11px;
+  padding: 10px;
   background:
     radial-gradient(circle at top left, rgba(255, 196, 87, 0.16), transparent 42%),
     linear-gradient(135deg, rgba(13, 18, 36, 0.96), rgba(10, 14, 28, 0.92));
@@ -221,7 +221,7 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .cog-event-minute {
   font-size: 10px;
@@ -234,7 +234,7 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 999px;
   background: rgba(255,255,255,0.08);
   color: #fff;
@@ -251,23 +251,24 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
 .cog-swap-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 .cog-sub-person {
   display: flex;
-  flex-direction: column;
-  gap: 7px;
+  flex-direction: row;
+  gap: 8px;
   align-items: center;
-  text-align: center;
+  text-align: left;
   min-width: 0;
 }
 .cog-sub-photo-wrap {
   position: relative;
   width: 100%;
-  max-width: 78px;
+  max-width: 54px;
+  flex: 0 0 54px;
   aspect-ratio: 1;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
   border: 1px solid rgba(255,255,255,0.1);
@@ -286,17 +287,17 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 18px;
   color: rgba(255,255,255,0.18);
   background: linear-gradient(135deg, rgba(14, 18, 38, 0.96), rgba(22, 28, 55, 0.9));
 }
 .cog-sub-number {
   position: absolute;
-  left: 6px;
-  bottom: 6px;
-  padding: 2px 6px;
+  left: 5px;
+  bottom: 5px;
+  padding: 2px 5px;
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   color: #fff;
   background: rgba(0,0,0,0.45);
@@ -309,49 +310,49 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
 .cog-sub-label {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 2px;
-  padding: 3px 8px;
+  justify-content: flex-start;
+  margin-bottom: 3px;
+  padding: 2px 7px;
   border-radius: 999px;
   background: rgba(255,255,255,0.08);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .cog-sub-name {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1;
   color: #fff;
   letter-spacing: 0.04em;
   text-wrap: balance;
 }
 .cog-sub-role {
-  margin-top: 3px;
-  font-size: 10px;
+  margin-top: 2px;
+  font-size: 9px;
   color: var(--muted);
 }
 .cog-sub-stats {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
 }
 .cog-sub-stats span {
   display: inline-flex;
   align-items: center;
-  padding: 3px 7px;
+  padding: 2px 6px;
   border-radius: 999px;
   background: rgba(255,255,255,0.08);
   color: var(--text);
-  font-size: 9px;
+  font-size: 8px;
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
 .cog-sub-arrow {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--gold);
   font-weight: 800;
   line-height: 1;
@@ -361,9 +362,13 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   color: var(--text);
 }
 .cog-event-text {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.45;
   color: var(--text);
+}
+.cog-event-summary {
+  margin-bottom: 8px;
+  color: var(--muted);
 }
 .cog-event-empty {
   color: var(--muted);
@@ -412,7 +417,7 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
 @media (max-width: 760px) {
   .cog-swap-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
   }
 
   .cog-sub-arrow {
@@ -421,7 +426,8 @@ svg.pitch{width:100%;max-width:700px;height:auto;display:block;margin:0 auto;fil
   }
 
   .cog-sub-photo-wrap {
-    max-width: 72px;
+    max-width: 52px;
+    flex-basis: 52px;
   }
 }
 

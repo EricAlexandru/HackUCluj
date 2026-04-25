@@ -132,7 +132,6 @@ function renderCognitivePlayerVisual(player, label) {
   const name = getCognitivePlayerLabel(player);
   const number = escapeCognitiveHtml(player?.number || "");
   const group = getCognitiveRoleGroup(player?.position);
-  const riskText = typeof player?.errorRate === "number" ? `${player.errorRate.toFixed(1)}% risc` : "";
   const energyText = typeof player?.energy === "number" ? `${player.energy.toFixed(1)}% energie` : "";
 
   return `
@@ -148,10 +147,7 @@ function renderCognitivePlayerVisual(player, label) {
         <div class="cog-sub-label">${escapeCognitiveHtml(label)}</div>
         <div class="cog-sub-name">${name}</div>
         <div class="cog-sub-role">${escapeCognitiveHtml(player?.position || "")}</div>
-        <div class="cog-sub-stats">
-          ${riskText ? `<span>${escapeCognitiveHtml(riskText)}</span>` : ""}
-          ${energyText ? `<span>${escapeCognitiveHtml(energyText)}</span>` : ""}
-        </div>
+        ${energyText ? `<div class="cog-sub-stats"><span>${escapeCognitiveHtml(energyText)}</span></div>` : ""}
       </div>
     </div>
   `;
@@ -161,14 +157,16 @@ function renderCognitiveSwapCard(event) {
   const outPlayer = event.outPlayer || {};
   const inPlayer = event.inPlayer || {};
   const outRisk = typeof event.outRisk === "number" ? `${event.outRisk.toFixed(1)}% risc` : "schimbare AI";
-  const minuteLine = `Min ${event.minute} · ${outRisk}`;
+  const reasonLabel = event.reason === "prospețime" ? "prospețime" : "risc";
+  const windowLabel = event.windowLabel ? ` · ${event.windowLabel}` : "";
 
   return `
     <li class="cog-event-card cog-event-swap">
       <div class="cog-event-topline">
-        <span class="cog-event-minute">${escapeCognitiveHtml(minuteLine)}</span>
-        <span class="cog-event-chip">AI swap</span>
+        <span class="cog-event-minute">Min ${event.minute}${windowLabel}</span>
+        <span class="cog-event-chip">${escapeCognitiveHtml(reasonLabel)}</span>
       </div>
+      <div class="cog-event-text cog-event-summary">${escapeCognitiveHtml(`${outPlayer.name || "Un jucător"} (${outRisk}) → ${inPlayer.name || "rezervează"}`)}</div>
       <div class="cog-swap-grid">
         ${renderCognitivePlayerVisual(outPlayer, "iese")}
         <div class="cog-sub-arrow">→</div>
@@ -189,6 +187,8 @@ const cognitiveState = {
   maxWindows: 3,
   usedSubs: 0,
   usedWindows: new Set(),
+  windowsExhaustedLogged: false,
+  subsExhaustedLogged: false,
   players: [],
   events: [],
   snapshots: {}
@@ -247,6 +247,8 @@ function resetCognitiveState() {
   cognitiveState.minute = 1;
   cognitiveState.usedSubs = 0;
   cognitiveState.usedWindows = new Set();
+  cognitiveState.windowsExhaustedLogged = false;
+  cognitiveState.subsExhaustedLogged = false;
   cognitiveState.players = initCognitivePlayers();
   cognitiveState.events = [];
   cognitiveState.snapshots = {};
@@ -287,6 +289,37 @@ function getCognitiveRiskThreshold(minute) {
   return 20;
 }
 
+function getCognitiveSubstitutionWindow(minute) {
+  if (minute === 45) return 0;
+  if (minute >= 54 && minute <= 60) return 1;
+  if (minute >= 64 && minute <= 72) return 2;
+  if (minute >= 76 && minute <= 84) return 3;
+  return null;
+}
+
+function getCognitiveWindowLabel(windowId) {
+  if (windowId === 1) return "55-60'";
+  if (windowId === 2) return "65-72'";
+  if (windowId === 3) return "76-84'";
+  return "pauză";
+}
+
+function getTacticalSubstitutionCandidate(minute) {
+  if (minute < 55) return null;
+
+  const fatiguedPlayer = getFieldPlayers()
+    .filter((player) => player.position !== "GK")
+    .sort((a, b) => a.energy - b.energy || b.errorRate - a.errorRate)[0];
+
+  if (!fatiguedPlayer) return null;
+  if (fatiguedPlayer.energy > 82 && fatiguedPlayer.errorRate < 14.5) return null;
+
+  const benchCandidate = getBenchByPosition(fatiguedPlayer.position)[0];
+  if (!benchCandidate) return null;
+
+  return { playerOut: fatiguedPlayer, playerIn: benchCandidate };
+}
+
 function applyHalftimeRecovery(minute) {
   // Titularii de pe teren recuperează la pauză, apoi intră în degradare accelerată în repriza 2.
   getFieldPlayers().forEach((player) => {
@@ -299,7 +332,7 @@ function applyHalftimeRecovery(minute) {
   addCognitiveEvent(minute, "info", "Min 45: Pauză. Recuperare activă aplicată titularilor de pe teren.");
 }
 
-function applySubstitution(minute, outPlayer, inPlayer) {
+function applySubstitution(minute, outPlayer, inPlayer, reason = "risc") {
   outPlayer.status = "Bancă";
   inPlayer.status = "Teren";
   inPlayer.hasPlayed = true;
@@ -307,9 +340,6 @@ function applySubstitution(minute, outPlayer, inPlayer) {
   inPlayer.errorRate = 5;
 
   cognitiveState.usedSubs += 1;
-  if (minute !== 45) {
-    cognitiveState.usedWindows.add(minute);
-  }
 
   cognitiveState.events.push({
     minute,
@@ -332,52 +362,73 @@ function applySubstitution(minute, outPlayer, inPlayer) {
       energy: inPlayer.energy,
       errorRate: inPlayer.errorRate
     },
-    outRisk: outPlayer.errorRate
+    outRisk: outPlayer.errorRate,
+    reason,
+    windowLabel: getCognitiveWindowLabel(getCognitiveSubstitutionWindow(minute))
   });
 }
 
 function runAISubstitutionEngine(minute) {
-  // Motorul AI caută jucători peste pragul critic și respectă constrângerile de schimbare.
+  // Motorul AI lucrează în ferestre realiste de schimbare, cu prioritate pe risc și apoi pe prospețime.
   const threshold = getCognitiveRiskThreshold(minute);
+  const windowId = getCognitiveSubstitutionWindow(minute);
+  const isHalftime = minute === 45;
+
+  if (!isHalftime && !windowId) return;
+  if (!isHalftime && cognitiveState.usedWindows.has(windowId)) return;
+
   const riskyPlayers = getFieldPlayers()
     .filter((player) => player.errorRate > threshold)
     .sort((a, b) => b.errorRate - a.errorRate);
 
-  if (!riskyPlayers.length) return;
-
   if (cognitiveState.usedSubs >= cognitiveState.maxSubs) {
-    addCognitiveEvent(minute, "warn", `Min ${minute}: prag ${threshold.toFixed(1)}% depășit, dar cele 5 schimbări sunt epuizate.`);
-    return;
-  }
-
-  if (minute !== 45 && cognitiveState.usedWindows.size >= cognitiveState.maxWindows) {
-    addCognitiveEvent(minute, "warn", `Min ${minute}: prag ${threshold.toFixed(1)}% depășit, dar nu mai există ferestre de schimbare.`);
-    return;
-  }
-
-  riskyPlayers.forEach((playerOut) => {
-    if (cognitiveState.usedSubs >= cognitiveState.maxSubs) return;
-
-    if (
-      minute !== 45 &&
-      cognitiveState.usedWindows.size >= cognitiveState.maxWindows &&
-      !cognitiveState.usedWindows.has(minute)
-    ) {
-      return;
+    if (!cognitiveState.subsExhaustedLogged) {
+      cognitiveState.subsExhaustedLogged = true;
+      addCognitiveEvent(minute, "info", `Min ${minute}: toate cele 5 schimbări au fost deja utilizate.`);
     }
+    return;
+  }
 
-    const subCandidate = getBenchByPosition(playerOut.position)[0];
-    if (!subCandidate) {
+  if (!isHalftime && cognitiveState.usedWindows.size >= cognitiveState.maxWindows) {
+    if (!cognitiveState.windowsExhaustedLogged) {
+      cognitiveState.windowsExhaustedLogged = true;
+      addCognitiveEvent(minute, "info", `Min ${minute}: ferestrele de schimbare au fost deja consumate.`);
+    }
+    return;
+  }
+
+  let plannedChanges = [];
+
+  if (riskyPlayers.length) {
+    plannedChanges = riskyPlayers.slice(0, isHalftime ? 2 : 1).map((playerOut) => ({
+      playerOut,
+      playerIn: getBenchByPosition(playerOut.position)[0],
+      reason: "risc"
+    }));
+  } else if (!isHalftime) {
+    const tacticalSwap = getTacticalSubstitutionCandidate(minute);
+    if (tacticalSwap) {
+      plannedChanges = [{ ...tacticalSwap, reason: "prospețime" }];
+    }
+  }
+
+  plannedChanges.forEach(({ playerOut, playerIn, reason }) => {
+    if (cognitiveState.usedSubs >= cognitiveState.maxSubs) return;
+    if (!playerIn) {
       addCognitiveEvent(
         minute,
         "warn",
-        `Min ${minute}: ${playerOut.name} este peste pragul de ${threshold.toFixed(1)}%, dar nu există rezervă pe poziția ${playerOut.position}.`
+        `Min ${minute}: ${playerOut.name} a intrat în fereastra de schimbare, dar nu există rezervă potrivită pe poziția ${playerOut.position}.`
       );
       return;
     }
 
-    applySubstitution(minute, playerOut, subCandidate);
+    applySubstitution(minute, playerOut, playerIn, reason);
   });
+
+  if (!isHalftime && plannedChanges.length > 0) {
+    cognitiveState.usedWindows.add(windowId);
+  }
 }
 
 function saveSnapshot(minute) {
