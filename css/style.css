@@ -7,6 +7,54 @@
 body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);display:flex;height:100vh;overflow:hidden}
 h1,h2,h3,.stat-num{font-family:'Bebas Neue',sans-serif;letter-spacing:0.05em}
 
+/* ==========================================================================
+   INTRO ANIMATION
+   ========================================================================== */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+  overflow: hidden;
+}
+.intro-overlay video {
+  width: 95%;
+  height: 95%;
+  object-fit: cover;
+  transform: scale(1); /* Fără zoom artificial, acoperă ecranul nativ */
+  transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1), opacity 1.2s ease, filter 1.2s ease;
+  transform-origin: center center;
+}
+@media (max-width: 768px) {
+  .intro-overlay video {
+    object-fit: contain;
+  }
+}
+.intro-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+.intro-overlay.fade-out video {
+  transform: scale(2.8) translateZ(0); /* Efect masiv de "Zoom/Warp" în față */
+  opacity: 0;
+  filter: blur(25px) brightness(2.5); /* Efect de lumină flash 3D */
+}
+.skip-intro-btn {
+  position: absolute;
+  bottom: 40px; right: 40px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; padding: 12px 28px; border-radius: 30px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.05em;
+  cursor: pointer; backdrop-filter: blur(10px);
+  transition: all 0.3s ease; z-index: 100000;
+  display: flex; align-items: center; gap: 8px;
+}
+.skip-intro-btn:hover { background: rgba(255,255,255,0.25); transform: translateX(-5px); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
 /* SIDEBAR */
 #sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
 .logo{padding:24px 20px 16px;border-bottom:1px solid var(--border)}

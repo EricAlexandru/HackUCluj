@@ -163,4 +163,34 @@ function formatWyscoutData(wyscoutPlayersArray, matchId) {
 }
 
 // Start
-document.addEventListener("DOMContentLoaded", loadDataAndInit);
+document.addEventListener("DOMContentLoaded", () => {
+  const introOverlay = document.getElementById('introOverlay');
+  const introVideo = document.getElementById('introVideo');
+  const skipBtn = document.getElementById('skipIntroBtn');
+
+  if (introOverlay && introVideo) {
+    const finishIntro = () => {
+      introOverlay.classList.add('fade-out');
+      // Așteptăm să se termine animația CSS de 1.2 secunde înainte de a șterge elementul din DOM
+      setTimeout(() => {
+        introOverlay.remove();
+      }, 1200); 
+    };
+
+    // Rulăm intro-ul doar o singură dată per sesiune
+    if (!sessionStorage.getItem('ucluj_intro_played')) {
+      sessionStorage.setItem('ucluj_intro_played', 'true');
+      
+      introVideo.addEventListener('ended', finishIntro);
+      if (skipBtn) skipBtn.addEventListener('click', finishIntro);
+      
+      // Fallback în caz că browserul blochează autoplay-ul
+      introVideo.play().catch(() => finishIntro());
+    } else {
+      // Dacă a mai fost rulat în sesiunea curentă, îl ștergem direct
+      introOverlay.remove();
+    }
+  }
+
+  loadDataAndInit();
+});
