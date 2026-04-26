@@ -181,13 +181,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!sessionStorage.getItem('ucluj_intro_played')) {
       sessionStorage.setItem('ucluj_intro_played', 'true');
       
+      // Evaluăm exact ca un @media query în CSS pentru a alege videoclipul
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        introVideo.src = './data/animatie_intro_telefon.mp4';
+      } else {
+        introVideo.src = './data/animatie_intro_pc.mp4';
+      }
+
+      introVideo.muted = true;
+      introVideo.setAttribute('playsinline', '');
+      introVideo.setAttribute('preload', 'auto');
+
       introVideo.addEventListener('ended', finishIntro);
       if (skipBtn) skipBtn.addEventListener('click', finishIntro);
       
       // Fallback în caz că browserul blochează autoplay-ul
       introVideo.play().catch(() => finishIntro());
     } else {
-      // Dacă a mai fost rulat în sesiunea curentă, îl ștergem direct
+      // Dacă a mai fost rulat în sesiunea curentă, îl eliminăm imediat pentru a evita blocarea UI
       introOverlay.remove();
     }
   }
