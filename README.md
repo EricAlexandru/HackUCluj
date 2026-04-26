@@ -1,4 +1,4 @@
-# 🧠 Coach Copilot — FC Universitatea Cluj
+# ⚽ Coach Copilot — FC Universitatea Cluj
 
 ## 🚀 Live Demo → [hack-u-cluj.lm.r.appspot.com](https://hack-u-cluj.lm.r.appspot.com)
 
