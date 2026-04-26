@@ -1,3 +1,9 @@
+🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
+🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
+🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
+🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
+🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
+
 # Coach Copilot - FC Universitatea Cluj
 
 O aplicație web interactivă pentru analiza performanțelor jucătorilor și echipelor din FC Universitatea Cluj, folosind date din Wyscout și antrenamente.
@@ -50,29 +56,6 @@ Pe Windows:
 start.bat
 ```
 
-## Acces de pe Mobil
-
-Aplicația este responsive și poate fi accesată de pe orice dispozitiv la adresa IP locală a computerului (ex: `http://192.168.1.100:8000`).
-
-## Deploy în Cloud
-
-### GitHub Pages (Recomandat pentru Hackathon)
-1. Creează un repository nou pe GitHub
-2. Încarcă toate fișierele proiectului (fără folderul `.git` dacă există)
-3. Du-te la Settings > Pages
-4. Selectează branch-ul `main` și folderul `/(root)`
-5. Aplicația va fi disponibilă la `https://username.github.io/repository-name`
-
-### Netlify
-1. Conectează repository-ul GitHub la Netlify
-2. Setează build settings: Build command: `echo "No build needed"` , Publish directory: `/`
-3. Deploy automat la fiecare push
-
-### Vercel
-1. Conectează repository-ul GitHub la Vercel
-2. Setează root directory: `/`
-3. Deploy automat
-
 ## Structura Proiect
 
 ```
@@ -105,10 +88,6 @@ Aplicația folosește date din:
 - Wyscout API (statistici meciuri)
 - Fișiere Excel din antrenamente
 - Date manuale pentru echipă
-
-## Dezvoltare
-
-Pentru modificări, editează fișierele din `js/`, `css/` sau `index.html`.
 
 ## Licență
 
