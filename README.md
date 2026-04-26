@@ -1,10 +1,6 @@
-🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
-🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
-🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
-🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
-🚀 Live demo: https://hack-u-cluj.lm.r.appspot.com
+# 🧠 Coach Copilot — FC Universitatea Cluj
 
-# Coach Copilot - FC Universitatea Cluj
+## 🚀 Live Demo → [hack-u-cluj.lm.r.appspot.com](https://hack-u-cluj.lm.r.appspot.com)
 
 O aplicație web interactivă pentru analiza performanțelor jucătorilor și echipelor din FC Universitatea Cluj, folosind date din Wyscout și antrenamente.
 
